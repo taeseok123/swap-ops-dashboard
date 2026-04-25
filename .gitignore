@@ -1,0 +1,21 @@
+# Secrets
+.redash_api_key
+.env
+.env.*
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Runtime/generated data
+data/dashboard.db
+data/*.db
+data/sync_status.json
+logs/
+reports/
+tmp/
+
+# macOS
+.DS_Store

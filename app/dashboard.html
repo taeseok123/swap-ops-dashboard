@@ -1,0 +1,1599 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>SWAP 운영 대시보드</title>
+    <style>
+      @import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css");
+
+      :root {
+        --bg-1: #eef3fb;
+        --bg-2: #f9fbff;
+        --sidebar: #ffffff;
+        --card: #ffffff;
+        --card-2: #f7faff;
+        --ink: #18253a;
+        --ink-2: #304767;
+        --muted: #7488a5;
+        --line: #d7e2f0;
+        --line-soft: #e6edf7;
+        --brand: #2f7cf6;
+        --brand-deep: #1f5fcb;
+        --mint: #1eb89a;
+        --amber: #d69623;
+        --rose: #d64567;
+        --shadow-lg: 0 20px 40px rgba(20, 38, 64, 0.08);
+        --shadow-md: 0 10px 26px rgba(20, 38, 64, 0.06);
+      }
+
+      * { box-sizing: border-box; }
+
+      body {
+        margin: 0;
+        color: var(--ink);
+        font-family: "Pretendard", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+        background: #f4f7fc;
+      }
+
+      .app-shell {
+        min-height: 100vh;
+        display: grid;
+        grid-template-columns: 258px minmax(0, 1fr);
+      }
+
+      .sidebar {
+        position: sticky;
+        top: 0;
+        height: 100vh;
+        padding: 18px 16px;
+        background: var(--sidebar);
+        border-right: 1px solid var(--line-soft);
+        box-shadow: inset -1px 0 0 rgba(28, 67, 130, 0.03);
+        display: grid;
+        grid-template-rows: auto auto 1fr auto;
+        gap: 16px;
+      }
+
+      .brand {
+        border: 1px solid var(--line);
+        border-radius: 16px;
+        background:
+          radial-gradient(180px 80px at 0% 0%, #eaf2ff 0%, transparent 90%),
+          linear-gradient(160deg, #ffffff 0%, #f6f9ff 100%);
+        padding: 16px;
+      }
+
+      .brand h1 {
+        margin: 0;
+        font-size: 20px;
+        letter-spacing: -0.02em;
+      }
+
+      .brand .sub {
+        margin-top: 6px;
+        font-size: 12px;
+        color: var(--muted);
+      }
+
+      .sync-box {
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        padding: 12px;
+        background: #fcfdff;
+        font-size: 12px;
+        color: var(--ink-2);
+      }
+
+      .sync-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        margin-top: 8px;
+        border-radius: 999px;
+        padding: 5px 10px;
+        font-size: 11px;
+        font-weight: 700;
+        background: #eef5ff;
+        color: #1f5fcb;
+      }
+
+      .menu {
+        display: grid;
+        gap: 8px;
+        align-content: start;
+      }
+
+      .menu .item {
+        width: 100%;
+        border: 1px solid transparent;
+        border-radius: 12px;
+        padding: 11px 12px;
+        font-size: 13px;
+        color: #48607f;
+        background: transparent;
+        text-align: left;
+        cursor: pointer;
+        transition: all 0.18s ease;
+      }
+
+      .menu .item.active {
+        border-color: #cadeff;
+        background: linear-gradient(130deg, #eff5ff 0%, #e8f0ff 100%);
+        color: #1e4f9e;
+        font-weight: 700;
+      }
+
+      .menu .item:not(.active):hover {
+        border-color: #dbe6f5;
+        background: #f6f9ff;
+      }
+
+      .side-foot {
+        border-top: 1px solid var(--line-soft);
+        padding-top: 14px;
+        font-size: 12px;
+        color: var(--muted);
+        line-height: 1.5;
+      }
+
+      .content {
+        padding: 20px 22px 28px;
+      }
+
+      .topbar {
+        border: 1px solid var(--line);
+        border-radius: 20px;
+        padding: 18px;
+        background: #ffffff;
+        box-shadow: 0 4px 12px rgba(20, 38, 64, 0.05);
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        gap: 18px;
+      }
+
+      .title {
+        margin: 0;
+        font-size: 30px;
+        letter-spacing: -0.035em;
+        line-height: 1.1;
+      }
+
+      .subtitle {
+        margin-top: 8px;
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      .filters {
+        display: grid;
+        grid-auto-flow: column;
+        gap: 10px;
+        align-items: end;
+      }
+
+      .filters label {
+        display: block;
+        margin-bottom: 5px;
+        color: var(--muted);
+        font-size: 11px;
+        font-weight: 600;
+      }
+
+      .filters input,
+      .filters button {
+        border: 1px solid #cfdbeb;
+        border-radius: 12px;
+        padding: 10px 12px;
+        font: inherit;
+      }
+
+      .filters input {
+        background: #ffffff;
+        color: var(--ink);
+      }
+
+      .filters button {
+        background: linear-gradient(145deg, var(--brand) 0%, var(--brand-deep) 100%);
+        border-color: #1e5cc4;
+        color: #fff;
+        font-weight: 700;
+        cursor: pointer;
+        box-shadow: 0 8px 20px rgba(31, 95, 203, 0.26);
+      }
+
+      .filters button:hover { filter: brightness(1.04); }
+
+      .section-label {
+        margin-top: 18px;
+        color: #5f7392;
+        font-size: 12px;
+        font-weight: 700;
+      }
+
+      .section-head {
+        margin-top: 18px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .section-head .section-label { margin-top: 0; }
+
+      .ghost-btn {
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        padding: 6px 10px;
+        font: inherit;
+        font-size: 12px;
+        background: #fff;
+        color: #436283;
+        cursor: pointer;
+      }
+
+      .kpi-grid {
+        margin-top: 10px;
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 12px;
+      }
+
+      .kpi {
+        border: 1px solid var(--line);
+        border-radius: 16px;
+        padding: 12px;
+        background: #ffffff;
+        box-shadow: 0 2px 8px rgba(20, 38, 64, 0.04);
+      }
+
+      .kpi-btn {
+        width: 100%;
+        border: 0;
+        padding: 0;
+        text-align: left;
+        background: transparent;
+        color: inherit;
+        cursor: pointer;
+      }
+
+      .kpi .label {
+        font-size: 12px;
+        color: #5f7392;
+        font-weight: 600;
+      }
+
+      .kpi .value {
+        margin-top: 8px;
+        font-size: 28px;
+        font-weight: 800;
+        line-height: 1;
+        letter-spacing: -0.04em;
+      }
+
+      .kpi .sub {
+        margin-top: 9px;
+        font-size: 11px;
+        color: var(--muted);
+      }
+
+      .kpi-btn:hover .value {
+        color: var(--brand-deep);
+        transition: color 0.16s ease;
+      }
+
+      .good { color: var(--mint); }
+      .warn { color: var(--amber); }
+      .danger { color: var(--rose); }
+
+      .grid3 {
+        margin-top: 12px;
+        display: grid;
+        grid-template-columns: 1.2fr 0.8fr;
+        gap: 12px;
+      }
+
+      .card.span-2 { grid-column: 1 / -1; }
+
+      .card {
+        border: 1px solid var(--line);
+        border-radius: 16px;
+        padding: 14px;
+        background: var(--card);
+        box-shadow: 0 2px 8px rgba(20, 38, 64, 0.04);
+      }
+
+      .card h3 {
+        margin: 0 0 12px;
+        font-size: 15px;
+        letter-spacing: -0.01em;
+      }
+
+      .goal-board {
+        margin-top: 10px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      .goal-item {
+        border: 1px solid #d8e4f4;
+        border-radius: 999px;
+        background: #ffffff;
+        padding: 7px 10px;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+      }
+
+      .goal-label {
+        font-size: 11px;
+        color: #56708f;
+      }
+
+      .goal-value {
+        font-size: 12px;
+        font-weight: 700;
+      }
+
+      .goal-sub {
+        font-size: 11px;
+        color: var(--muted);
+      }
+
+      .bars {
+        display: grid;
+        grid-template-columns: repeat(10, minmax(0, 1fr));
+        gap: 8px;
+        align-items: end;
+      }
+
+      .bar-col { display: grid; gap: 6px; }
+      .bar-col.latest .bar-track { outline: 2px solid #8bb8ff; }
+
+      .bar-track {
+        height: 132px;
+        border-radius: 10px;
+        background: linear-gradient(180deg, #edf3ff 0%, #e5eefc 100%);
+        overflow: hidden;
+        display: flex;
+        align-items: end;
+      }
+
+      .bar {
+        width: 100%;
+        background: linear-gradient(180deg, #7db1ff 0%, #2d79ef 100%);
+      }
+
+      .bar-label {
+        text-align: center;
+        font-size: 11px;
+        color: var(--muted);
+      }
+
+      .chart-help {
+        margin: 0 0 10px;
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .chart-meta {
+        margin: 0 0 10px;
+        padding: 8px 10px;
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        background: #f7fbff;
+        color: #385879;
+        font-size: 12px;
+      }
+
+      .stack {
+        display: grid;
+        gap: 12px;
+      }
+
+      .stack-item {
+        display: grid;
+        grid-template-columns: 82px 1fr auto;
+        gap: 10px;
+        align-items: center;
+      }
+
+      .stack-label {
+        font-size: 12px;
+        color: var(--ink-2);
+        font-weight: 600;
+      }
+
+      .stack-track {
+        height: 14px;
+        border-radius: 999px;
+        background: #edf3fb;
+        overflow: hidden;
+      }
+
+      .stack-fill { height: 100%; }
+      .fill-a { background: linear-gradient(90deg, #3f8cff 0%, #286fe0 100%); }
+      .fill-b { background: linear-gradient(90deg, #2fc9ae 0%, #17ac92 100%); }
+      .fill-c { background: linear-gradient(90deg, #8d9eff 0%, #6f84fb 100%); }
+
+      .table-wrap {
+        margin-top: 10px;
+        border: 1px solid var(--line);
+        border-radius: 16px;
+        box-shadow: var(--shadow-md);
+        background: var(--card);
+        overflow: auto;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+
+      th, td {
+        padding: 11px 12px;
+        border-bottom: 1px solid #eaf0f8;
+        font-size: 13px;
+        text-align: left;
+        white-space: nowrap;
+      }
+
+      th {
+        position: sticky;
+        top: 0;
+        z-index: 1;
+        background: linear-gradient(180deg, #f7faff 0%, #f2f7ff 100%);
+        color: #567091;
+        font-weight: 700;
+      }
+
+      td { color: #253a57; }
+
+      .insights {
+        margin: 0;
+        padding-left: 18px;
+        font-size: 13px;
+        line-height: 1.64;
+        color: #27405f;
+      }
+
+      .signal-note {
+        margin: -4px 0 10px;
+        color: #617898;
+        font-size: 12px;
+      }
+
+      .signal-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+      }
+
+      .signal-item {
+        border: 1px solid #d8e4f4;
+        border-radius: 12px;
+        background: #fbfdff;
+        padding: 10px;
+      }
+
+      .signal-head {
+        display: flex;
+        justify-content: space-between;
+        gap: 8px;
+        align-items: center;
+      }
+
+      .signal-title {
+        font-size: 13px;
+        font-weight: 700;
+        color: #284263;
+      }
+
+      .signal-pill {
+        border-radius: 999px;
+        padding: 3px 8px;
+        font-size: 11px;
+        font-weight: 700;
+      }
+
+      .signal-pill.good { background: #e6f8f2; color: #118a73; }
+      .signal-pill.warn { background: #fff2df; color: #b67812; }
+      .signal-pill.danger { background: #ffe6ec; color: #c83f61; }
+
+      .signal-desc {
+        margin-top: 7px;
+        font-size: 12px;
+        color: #496586;
+        line-height: 1.55;
+      }
+
+      .signal-action {
+        margin-top: 7px;
+        font-size: 12px;
+        color: #25486f;
+        line-height: 1.55;
+      }
+
+      .pill {
+        display: inline-flex;
+        align-items: center;
+        border-radius: 999px;
+        padding: 4px 8px;
+        font-size: 11px;
+        font-weight: 700;
+        vertical-align: middle;
+      }
+
+      .pill-good { background: #e6f8f2; color: #118a73; }
+      .pill-warn { background: #fff2df; color: #b67812; }
+      .pill-danger { background: #ffe6ec; color: #c83f61; }
+
+      .detail-view {
+        display: none;
+        margin-top: 12px;
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        padding: 16px;
+        background: linear-gradient(170deg, #ffffff 0%, #f7fbff 100%);
+        box-shadow: var(--shadow-lg);
+      }
+
+      .detail-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 12px;
+      }
+
+      .detail-title {
+        margin: 0;
+        font-size: 28px;
+        letter-spacing: -0.03em;
+      }
+
+      .detail-sub {
+        margin-top: 7px;
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.64;
+      }
+
+      .back-btn {
+        border: 1px solid #cbdaf0;
+        border-radius: 12px;
+        padding: 9px 12px;
+        background: #f4f8ff;
+        color: #33547f;
+        font: inherit;
+        font-weight: 600;
+        cursor: pointer;
+      }
+
+      .detail-grid {
+        margin-top: 14px;
+        display: grid;
+        grid-template-columns: 1.2fr 0.8fr;
+        gap: 12px;
+      }
+
+      .dcard {
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        background: var(--card-2);
+        padding: 12px;
+      }
+
+      .dcard h4 {
+        margin: 0 0 8px;
+        font-size: 14px;
+      }
+
+      .driver-list {
+        margin: 0;
+        padding-left: 18px;
+        font-size: 13px;
+        line-height: 1.64;
+      }
+
+      .trend-bars {
+        display: grid;
+        grid-template-columns: repeat(10, minmax(0, 1fr));
+        gap: 8px;
+        align-items: end;
+      }
+
+      .tcol { display: grid; gap: 4px; }
+      .tcol.latest .ttrack { outline: 2px solid #8bb8ff; }
+
+      .ttrack {
+        height: 88px;
+        border-radius: 8px;
+        background: #e8effa;
+        overflow: hidden;
+        display: flex;
+        align-items: end;
+      }
+
+      .tbar {
+        width: 100%;
+        background: linear-gradient(180deg, #95c0ff 0%, #3f86ff 100%);
+      }
+
+      .tlab {
+        font-size: 10px;
+        color: var(--muted);
+        text-align: center;
+      }
+
+      .explain {
+        margin: 0;
+        padding-left: 18px;
+        font-size: 13px;
+        line-height: 1.64;
+      }
+
+      @media (max-width: 1360px) {
+        .kpi-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      }
+
+      @media (max-width: 1180px) {
+        .app-shell { grid-template-columns: 88px minmax(0, 1fr); }
+        .brand .sub,
+        .sync-box,
+        .menu .item,
+        .side-foot { display: none; }
+        .brand {
+          padding: 12px 8px;
+          text-align: center;
+        }
+        .brand h1 { font-size: 14px; }
+        .grid3 { grid-template-columns: 1fr; }
+        .detail-grid { grid-template-columns: 1fr; }
+      }
+
+      @media (max-width: 900px) {
+        .filters { grid-auto-flow: row; }
+        .kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .signal-grid { grid-template-columns: 1fr; }
+      }
+
+      @media (max-width: 760px) {
+        .app-shell { grid-template-columns: 1fr; }
+        .sidebar { display: none; }
+        .content { padding: 12px; }
+        .topbar {
+          flex-direction: column;
+          align-items: stretch;
+          border-radius: 14px;
+        }
+        .title { font-size: 24px; }
+        .bars,
+        .trend-bars { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar">
+        <section class="brand">
+          <h1>SWAP Ops</h1>
+          <div class="sub">운영 데이터 허브</div>
+        </section>
+
+        <section class="sync-box">
+          동기화 상태
+          <div id="syncMeta" class="sync-pill">확인 중...</div>
+        </section>
+
+        <nav class="menu">
+          <button class="item active" data-target="sectionOverview">대시보드 개요</button>
+          <button class="item" data-target="sectionSubscription">구독 지표</button>
+          <button class="item" data-target="sectionRequests">고객요청</button>
+          <button class="item" data-target="sectionQuality">운영 품질</button>
+          <button class="item" data-target="sectionValidation">검증 리포트</button>
+        </nav>
+
+        <div class="side-foot">Data source: Redash + Databricks</div>
+      </aside>
+
+      <main class="content">
+        <div id="mainView">
+          <section class="topbar">
+            <div>
+              <h2 class="title">SWAP 운영 통합 대시보드</h2>
+              <div class="subtitle">구독/고객요청/SLA 지표를 한 화면에서 빠르게 읽고 바로 액션까지 연결합니다.</div>
+            </div>
+            <div class="filters">
+              <div>
+                <label for="startInput">시작 주(월요일)</label>
+                <input type="date" id="startInput" />
+              </div>
+              <div>
+                <label for="endInput">종료 주(월요일)</label>
+                <input type="date" id="endInput" />
+              </div>
+              <button id="loadBtn">갱신</button>
+            </div>
+          </section>
+
+          <div id="goalBoard" class="goal-board"></div>
+
+          <div class="section-head">
+            <div id="sectionOverview" class="section-label">핵심 KPI</div>
+            <button id="kpiToggleBtn" class="ghost-btn">지표 더보기</button>
+          </div>
+          <section class="kpi-grid" id="kpiGrid"></section>
+
+          <div id="sectionQuality" class="section-label">운영 흐름</div>
+          <section class="grid3">
+            <article class="card">
+              <h3>주간 활성 구독자 추이 (최근 10주, 단위: 명)</h3>
+              <p class="chart-help">막대 높이는 해당 주의 활성 구독자 수입니다. 마지막 막대가 최신 주차입니다.</p>
+              <div id="activeTrendMeta" class="chart-meta">로딩 중...</div>
+              <div id="activeBars" class="bars"></div>
+            </article>
+
+            <article class="card">
+              <h3>최근 주차 고객요청 구성</h3>
+              <div id="requestMix" class="stack"></div>
+            </article>
+
+            <article class="card span-2">
+              <h3>운영 인사이트</h3>
+              <ol id="insightList" class="insights"></ol>
+            </article>
+
+            <article class="card span-2">
+              <h3>실시간 운영 알림 (Slack 보조 신호)</h3>
+              <p class="signal-note">참고용 보조 지표입니다. 공식 KPI 판단은 Redash/Databricks 주간 지표를 기준으로 해석하세요.</p>
+              <div id="slackSignalGrid" class="signal-grid"></div>
+            </article>
+          </section>
+
+          <div id="sectionSubscription" class="section-label">주간 통합 데이터</div>
+          <section class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>주차</th>
+                  <th>활성 구독자</th>
+                  <th>신규</th>
+                  <th>해지/철회</th>
+                  <th>유지율</th>
+                  <th>이탈률</th>
+                  <th>주별 증감</th>
+                  <th>반납형 요청</th>
+                  <th>인수형 요청</th>
+                  <th>구매 요청</th>
+                  <th>예정일내 완료율</th>
+                  <th>백로그</th>
+                  <th>D-1 미완료</th>
+                </tr>
+              </thead>
+              <tbody id="weeklyBody"></tbody>
+            </table>
+          </section>
+
+          <div id="sectionRequests" class="section-label">고객요청 유형 상세</div>
+          <section class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>요청 타입 코드</th>
+                  <th>요청 타입(한글)</th>
+                  <th>건수</th>
+                  <th>비율</th>
+                </tr>
+              </thead>
+              <tbody id="typeBody"></tbody>
+            </table>
+          </section>
+
+          <div id="sectionValidation" class="section-label">검증 리포트</div>
+          <section class="card" id="validationCard">
+            <h3>데이터 신뢰도 체크</h3>
+            <ol id="validationList" class="insights">
+              <li>동기화 상태를 불러오는 중입니다.</li>
+            </ol>
+          </section>
+        </div>
+
+        <section id="detailView" class="detail-view">
+          <div class="detail-head">
+            <div>
+              <h2 id="detailTitle" class="detail-title">지표 상세</h2>
+              <div id="detailSub" class="detail-sub"></div>
+            </div>
+            <button id="backBtn" class="back-btn">대시보드로 돌아가기</button>
+          </div>
+
+          <div class="detail-grid">
+            <article class="dcard">
+              <h4>주차별 추이 (최근 10주)</h4>
+              <div id="detailTrendMeta" class="chart-meta">로딩 중...</div>
+              <div id="detailTrend" class="trend-bars"></div>
+            </article>
+            <article class="dcard">
+              <h4>이 지표로 보는 운영 인사이트</h4>
+              <ol id="detailInsights" class="explain"></ol>
+            </article>
+            <article class="dcard">
+              <h4>원인 분해 (드릴다운)</h4>
+              <ol id="detailDrivers" class="driver-list"></ol>
+            </article>
+            <article class="dcard">
+              <h4>데이터 도출 방식</h4>
+              <div id="detailFormula" class="detail-sub"></div>
+            </article>
+            <article class="dcard">
+              <h4>해석할 때 주의할 점</h4>
+              <div id="detailGuide" class="detail-sub"></div>
+            </article>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script>
+      const n = (v) => Number(v || 0).toLocaleString();
+      const pct = (v) => `${(Number(v || 0) * 100).toFixed(1)}%`;
+
+      const startInput = document.getElementById("startInput");
+      const endInput = document.getElementById("endInput");
+      const loadBtn = document.getElementById("loadBtn");
+      const kpiToggleBtn = document.getElementById("kpiToggleBtn");
+      const kpiGrid = document.getElementById("kpiGrid");
+      const weeklyBody = document.getElementById("weeklyBody");
+      const activeBars = document.getElementById("activeBars");
+      const requestMix = document.getElementById("requestMix");
+      const insightList = document.getElementById("insightList");
+      const typeBody = document.getElementById("typeBody");
+      const mainView = document.getElementById("mainView");
+      const detailView = document.getElementById("detailView");
+      const detailTitle = document.getElementById("detailTitle");
+      const detailSub = document.getElementById("detailSub");
+      const detailTrend = document.getElementById("detailTrend");
+      const detailInsights = document.getElementById("detailInsights");
+      const detailDrivers = document.getElementById("detailDrivers");
+      const detailFormula = document.getElementById("detailFormula");
+      const detailGuide = document.getElementById("detailGuide");
+      const detailTrendMeta = document.getElementById("detailTrendMeta");
+      const backBtn = document.getElementById("backBtn");
+      const syncMeta = document.getElementById("syncMeta");
+      const validationList = document.getElementById("validationList");
+      const lnbItems = Array.from(document.querySelectorAll(".menu .item[data-target]"));
+      const activeTrendMeta = document.getElementById("activeTrendMeta");
+      const goalBoard = document.getElementById("goalBoard");
+      const slackSignalGrid = document.getElementById("slackSignalGrid");
+
+      let weeklyRowsCache = [];
+      let typeRowsCache = [];
+      let latestRowCache = null;
+      let currentDetailMetric = null;
+      let showAllKpis = false;
+
+      const METRIC_META = {
+        active_subscribers: {
+          label: "주간 활성 구독자",
+          description: "해당 주 종료 시점 기준으로 활성 상태인 구독자 수입니다. 운영 규모와 기본 수요를 나타냅니다.",
+          formula: "데이터 소스: Redash 1001 · 산식: 주차 종료 시점에 활성 상태인 구독자(subscription_id) 고유 건수를 집계합니다.",
+          guide: "절대값만 보지 말고 주별 증감/이탈률과 함께 보세요.",
+          insights: [
+            "활성 구독자 증가와 이탈률 상승이 함께 나오면 유지 품질 개선이 우선입니다.",
+            "운영 인력/재고 계획의 기준선으로 사용하세요."
+          ],
+          value: (r) => Number(r.active_subscribers || 0),
+          render: (v) => n(v)
+        },
+        new_subscribers: {
+          label: "주간 신규 구독자",
+          description: "해당 주 새로 유입된 구독자 수입니다.",
+          formula: "데이터 소스: Redash 1001 · 산식: 해당 주에 시작일(start_at_kst)이 포함된 신규 구독자 고유 건수를 집계합니다.",
+          guide: "유지율과 함께 cohort 관점으로 보는 것이 정확합니다.",
+          insights: [
+            "신규 증가 주는 다음 주 운영부하를 선제 점검하세요.",
+            "신규 상승 대비 유지율 하락이면 유입 품질 이슈를 의심하세요."
+          ],
+          value: (r) => Number(r.new_subscribers || 0),
+          render: (v) => n(v)
+        },
+        churned_subscribers: {
+          label: "해지/철회",
+          description: "해당 주 종료 처리된 구독자 수입니다.",
+          formula: "데이터 소스: Redash 1001 · 산식: 상태값이 TERMINATED/WITHDRAWN/CANCELED 인 구독 건수를 주차 기준으로 집계합니다.",
+          guide: "해지 사유 Top3 분류를 매주 같이 보세요.",
+          insights: [
+            "해지 급등은 SLA/정책/요금 이슈와 동반되는 경우가 많습니다.",
+            "채널/요청유형별 해지율 분해가 빠른 개선으로 이어집니다."
+          ],
+          value: (r) => Number(r.churned_subscribers || 0),
+          render: (v) => n(v)
+        },
+        retention_rate: {
+          label: "구독 유지율",
+          description: "주초 활성 모수 대비 주말까지 유지된 비율입니다.",
+          formula: "데이터 소스: Redash 1001 · 산식: 구독 유지율 = 주초 활성 모수 대비 주말까지 유지된 구독자 수(retained_subscribers / active_start_subscribers).",
+          guide: "최신 주차 단일값보다 최근 4주 추세를 우선 해석하세요.",
+          insights: [
+            "운영/CS/정책 품질이 통합 반영되는 핵심 건강 지표입니다.",
+            "신규가 늘어도 유지율이 떨어지면 성장 효율은 악화됩니다."
+          ],
+          goal: { type: "min", value: 0.93, label: "목표 93% 이상" },
+          value: (r) => Number(r.retention_rate || 0),
+          render: (v) => pct(v)
+        },
+        churn_rate: {
+          label: "이탈률",
+          description: "주초 활성 모수 대비 해당 주 해지/철회 비율입니다.",
+          formula: "데이터 소스: Redash 1001 · 산식: 이탈률 = 주초 활성 모수 대비 해지/철회 구독자 수(churned_subscribers / active_start_subscribers).",
+          guide: "이탈률 상승 시 해지 사유 + D-1 미완료를 즉시 교차 확인하세요.",
+          insights: [
+            "이탈률은 후행 결과라 선행 지표(백로그/첫반응속도)와 같이 봐야 합니다.",
+            "정책 변경 주에는 별도 baseline 비교가 필요합니다."
+          ],
+          goal: { type: "max", value: 0.08, label: "목표 8% 이하" },
+          value: (r) => Number(r.churn_rate || 0),
+          render: (v) => pct(v)
+        },
+        wow_active_delta: {
+          label: "주별 증감",
+          description: "활성 구독자의 주간 순증감입니다.",
+          formula: "데이터 소스: Redash 1001 · 산식: 주별 증감 = 주간 신규 구독자 수 - 주간 해지/철회 구독자 수.",
+          guide: "순증 단독 해석보다 신규/해지 분해를 함께 보세요.",
+          insights: [
+            "경영/운영 공유 시 가장 직관적인 성과 지표입니다.",
+            "순증 급감 구간은 원인 분해 속도가 핵심입니다."
+          ],
+          value: (r) => Number(r.wow_active_delta || 0),
+          render: (v) => `${v >= 0 ? "+" : ""}${n(v)}`
+        },
+        request_return_count: {
+          label: "반납형 요청",
+          description: "반납형(subscription_type=SUBSCRIPTION) 고객요청 접수 수입니다.",
+          formula: "데이터 소스: Redash 1001 · 산식: 해당 주에 생성된 고객요청 중 subscription_type='SUBSCRIPTION' 인 요청 건수를 집계합니다.",
+          guide: "전체 요청 대비 비율 변화를 함께 확인하세요.",
+          insights: [
+            "반납형 비중 증가는 회수/물류 부담 증가 신호입니다.",
+            "피크 주에는 백로그/온타임 지표를 동시에 봐야 합니다."
+          ],
+          value: (r) => Number(r.request_return_count || 0),
+          render: (v) => n(v)
+        },
+        request_takeover_count: {
+          label: "인수형 요청",
+          description: "인수형(subscription_type=LEASE) 고객요청 접수 수입니다.",
+          formula: "데이터 소스: Redash 1001 · 산식: 해당 주에 생성된 고객요청 중 subscription_type='LEASE' 인 요청 건수를 집계합니다.",
+          guide: "유형별 리드타임과 함께 보면 운영 병목을 빨리 찾을 수 있습니다.",
+          insights: [
+            "인수형 증가는 담당자 WIP 과부하로 이어질 가능성이 큽니다.",
+            "처리 단계별 실패 포인트를 분리 추적하세요."
+          ],
+          value: (r) => Number(r.request_takeover_count || 0),
+          render: (v) => n(v)
+        },
+        request_purchase_count: {
+          label: "구매 요청",
+          description: "구매형(subscription_type=PURCHASE) 고객요청 접수 수입니다.",
+          formula: "데이터 소스: Redash 1001 · 산식: 해당 주에 생성된 고객요청 중 subscription_type='PURCHASE' 인 요청 건수를 집계합니다.",
+          guide: "건수 변동성이 커서 이동평균으로 보는 것을 권장합니다.",
+          insights: [
+            "상품/가격 정책 변경의 영향을 빠르게 반영합니다.",
+            "마케팅 채널 성과와 연결하면 원인 해석이 명확해집니다."
+          ],
+          value: (r) => Number(r.request_purchase_count || 0),
+          render: (v) => n(v)
+        },
+        ontime_completion_rate: {
+          label: "예정일내 처리 완료율",
+          description: "예정일 도래 요청 중 예정일 내 완료된 비율입니다.",
+          formula: "데이터 소스: Redash 1002 · 산식: 예정일내 처리 완료율 = 예정일 도래 건수(due_cnt) 대비 예정일 내 완료 건수(ontime_cnt) 비율입니다.",
+          guide: "후행 지표이므로 D-1 미완료/백로그와 함께 모니터링해야 선제 대응이 됩니다.",
+          insights: [
+            "하락 시 고객 불만/재문의 증가로 이어질 가능성이 큽니다.",
+            "첫 반응속도 P90과 함께 보면 개선 포인트가 선명해집니다."
+          ],
+          goal: { type: "min", value: 0.9, label: "목표 90% 이상" },
+          value: (r) => Number(r.ontime_completion_rate || 0),
+          render: (v) => pct(v)
+        },
+        overdue_d1_count: {
+          label: "D-1 미완료",
+          description: "예정일 하루 전까지 완료되지 않은 요청 수입니다.",
+          formula: "데이터 소스: Redash 1002 · 산식: D-1 미완료 = 예정일 하루 전 시점까지 완료되지 않은 요청 건수를 집계합니다.",
+          guide: "SLA 하락의 선행 위험지표로 고정 추적하세요.",
+          insights: [
+            "D-1 증가 구간은 다음 주 온타임 하락 가능성이 높습니다.",
+            "요청유형별로 분해하면 병목 유형을 빠르게 찾을 수 있습니다."
+          ],
+          goal: { type: "max", value: 40, label: "목표 40건 이하" },
+          value: (r) => Number(r.overdue_d1_count || 0),
+          render: (v) => n(v)
+        }
+      };
+
+      function kpi(metricKey, label, value, sub, cls = "") {
+        return `
+          <article class="kpi">
+            <button class="kpi-btn" data-metric="${metricKey}">
+              <div class="label">${label}</div>
+              <div class="value ${cls}">${value}</div>
+              <div class="sub">${sub}</div>
+            </button>
+          </article>
+        `;
+      }
+
+      function wowClass(delta) {
+        if (delta < 0) return "danger";
+        if (delta < 30) return "warn";
+        return "good";
+      }
+
+      function statusPill(rate, type = "retention") {
+        if (type === "retention") {
+          if (rate >= 0.93) return '<span class="pill pill-good">안정</span>';
+          if (rate >= 0.89) return '<span class="pill pill-warn">주의</span>';
+          return '<span class="pill pill-danger">경고</span>';
+        }
+        if (rate <= 0.08) return '<span class="pill pill-good">안정</span>';
+        if (rate <= 0.12) return '<span class="pill pill-warn">주의</span>';
+        return '<span class="pill pill-danger">경고</span>';
+      }
+
+      function fmtDelta(v) {
+        const x = Number(v || 0);
+        return `${x >= 0 ? "+" : ""}${n(x)}`;
+      }
+
+      function evaluateGoal(metricKey, row) {
+        const meta = METRIC_META[metricKey];
+        if (!meta || !meta.goal || !row) return null;
+        const current = Number(meta.value(row));
+        const { type, value } = meta.goal;
+        const pass = type === "min" ? current >= value : current <= value;
+        return {
+          pass,
+          current,
+          target: value,
+          label: meta.goal.label || "",
+          cls: pass ? "good" : "danger",
+          statusText: pass ? "정상" : "주의"
+        };
+      }
+
+      function renderGoalBoard(latest) {
+        if (!latest) {
+          goalBoard.innerHTML = "";
+          return;
+        }
+        const keys = ["retention_rate", "churn_rate", "ontime_completion_rate", "overdue_d1_count", "wow_active_delta"];
+        goalBoard.innerHTML = keys.map((key) => {
+          const meta = METRIC_META[key];
+          const raw = meta.value(latest);
+          const goal = evaluateGoal(key, latest);
+          let goalLine = "추적";
+          let cls = "";
+          if (goal) {
+            goalLine = goal.statusText;
+            cls = goal.cls;
+          }
+          return `
+            <div class="goal-item">
+              <div class="goal-label">${meta.label}</div>
+              <div class="goal-value ${cls}">${meta.render(raw)}</div>
+              <div class="goal-sub">${goalLine}</div>
+            </div>
+          `;
+        }).join("");
+      }
+
+      function renderDetailDrivers(metricKey, latest, typeRows, weeklyRows) {
+        if (!latest) {
+          detailDrivers.innerHTML = "<li>원인 분해를 위한 데이터가 없습니다.</li>";
+          return;
+        }
+
+        const lines = [];
+        const totalReq = Number(latest.total_request_count || 0);
+        const topType = typeRows && typeRows.length ? typeRows[0] : null;
+
+        if (metricKey === "churn_rate" || metricKey === "retention_rate") {
+          lines.push(`해지/철회 건수 ${n(latest.churned_subscribers)}건, 주초 활성 ${n(latest.active_subscribers)}명 기준으로 계산됩니다.`);
+          lines.push(`전주 대비 활성 구독자 순증감은 ${fmtDelta(latest.wow_active_delta)}명입니다.`);
+          if (topType) lines.push(`최다 요청유형은 '${topType.request_type_name_ko}' (${pct(topType.request_ratio)})로, CS/운영 부담과 함께 해석이 필요합니다.`);
+        } else if (metricKey === "ontime_completion_rate" || metricKey === "overdue_d1_count") {
+          lines.push(`선행 위험신호: D-1 미완료 ${n(latest.overdue_d1_count)}건, 백로그 ${n(latest.backlog_open_count)}건.`);
+          lines.push(`주간 요청 총량은 ${n(totalReq)}건으로, 물량 증가 주차는 SLA 하락 가능성이 큽니다.`);
+          if (topType) lines.push(`요청 구성 상위 유형 '${topType.request_type_name_ko}' 비중이 ${pct(topType.request_ratio)}입니다.`);
+        } else if (metricKey === "request_return_count" || metricKey === "request_takeover_count" || metricKey === "request_purchase_count") {
+          const meta = METRIC_META[metricKey];
+          const own = Number(meta.value(latest));
+          const ratio = totalReq > 0 ? own / totalReq : 0;
+          lines.push(`${meta.label}은 전체 요청 ${n(totalReq)}건 중 ${n(own)}건(${pct(ratio)})입니다.`);
+          lines.push(`전주 대비 물량 변화와 함께 백로그(${n(latest.backlog_open_count)}건) 영향까지 같이 보세요.`);
+          if (topType) lines.push(`현재 최다 유형은 '${topType.request_type_name_ko}' (${n(topType.request_count)}건)입니다.`);
+        } else {
+          const prev = weeklyRows.length >= 2 ? weeklyRows[1] : null;
+          if (prev) {
+            const cur = Number(METRIC_META[metricKey].value(latest));
+            const pre = Number(METRIC_META[metricKey].value(prev));
+            lines.push(`전주 대비 변화: ${METRIC_META[metricKey].render(cur - pre)}.`);
+          }
+          lines.push(`관련 보조지표: 백로그 ${n(latest.backlog_open_count)}건, D-1 미완료 ${n(latest.overdue_d1_count)}건.`);
+          if (topType) lines.push(`요청유형 상위 '${topType.request_type_name_ko}' 비중은 ${pct(topType.request_ratio)}입니다.`);
+        }
+
+        detailDrivers.innerHTML = lines.map((line) => `<li>${line}</li>`).join("");
+      }
+
+      function renderWeeklyTable(rows) {
+        weeklyBody.innerHTML = rows.map((r) => {
+          const wow = Number(r.wow_active_delta || 0);
+          return `
+            <tr>
+              <td>${r.week_start}</td>
+              <td>${n(r.active_subscribers)}</td>
+              <td>${n(r.new_subscribers)}</td>
+              <td>${n(r.churned_subscribers)}</td>
+              <td>${pct(r.retention_rate)} ${statusPill(Number(r.retention_rate || 0), "retention")}</td>
+              <td>${pct(r.churn_rate)} ${statusPill(Number(r.churn_rate || 0), "churn")}</td>
+              <td class="${wowClass(wow)}">${wow >= 0 ? "+" : ""}${n(wow)}</td>
+              <td>${n(r.request_return_count)}</td>
+              <td>${n(r.request_takeover_count)}</td>
+              <td>${n(r.request_purchase_count)}</td>
+              <td>${pct(r.ontime_completion_rate)}</td>
+              <td>${n(r.backlog_open_count)}</td>
+              <td>${n(r.overdue_d1_count)}</td>
+            </tr>
+          `;
+        }).join("");
+      }
+
+      function renderKpis(latest) {
+        if (!latest) {
+          kpiGrid.innerHTML = kpi("active_subscribers", "데이터 상태", "없음", "주간 지표를 불러오지 못했습니다.");
+          kpiToggleBtn.textContent = "지표 더보기";
+          return;
+        }
+
+        const wow = Number(latest.wow_active_delta || 0);
+        const core = [
+          kpi("active_subscribers", "주간 활성 구독자", n(latest.active_subscribers), "전체 활성 구독자 수"),
+          kpi("new_subscribers", "주간 신규 구독자", n(latest.new_subscribers), "해당 주 신규 유입"),
+          kpi("churned_subscribers", "해지/철회", n(latest.churned_subscribers), "해당 주 이탈 건수", Number(latest.churned_subscribers) > 180 ? "danger" : ""),
+          kpi("retention_rate", "구독 유지율", pct(latest.retention_rate), "retained / active", Number(latest.retention_rate) >= 0.93 ? "good" : "warn"),
+          kpi("churn_rate", "이탈률", pct(latest.churn_rate), "churned / active", Number(latest.churn_rate) >= 0.12 ? "danger" : ""),
+          kpi("ontime_completion_rate", "예정일내 완료율", pct(latest.ontime_completion_rate), "SLA KPI", Number(latest.ontime_completion_rate) >= 0.9 ? "good" : "warn")
+        ];
+        const extras = [
+          kpi("wow_active_delta", "주별 증감", `${wow >= 0 ? "+" : ""}${n(wow)}`, "활성 구독자 WoW", wowClass(wow)),
+          kpi("request_return_count", "반납형 요청", n(latest.request_return_count), "주간 접수 수"),
+          kpi("request_takeover_count", "인수형 요청", n(latest.request_takeover_count), "주간 접수 수"),
+          kpi("request_purchase_count", "구매 요청", n(latest.request_purchase_count), "주간 접수 수"),
+          kpi("overdue_d1_count", "D-1 미완료", n(latest.overdue_d1_count), "선행 위험 지표", Number(latest.overdue_d1_count) >= 40 ? "danger" : ""),
+          kpi("active_subscribers", "최신 주차", latest.week_start, "기준 주차")
+        ];
+        kpiGrid.innerHTML = [...core, ...(showAllKpis ? extras : [])].join("");
+        kpiToggleBtn.textContent = showAllKpis ? "핵심만 보기" : "지표 더보기";
+      }
+
+      function renderActiveTrend(rows) {
+        const sorted = [...rows].reverse().slice(-10);
+        if (!sorted.length) {
+          activeBars.innerHTML = "";
+          activeTrendMeta.textContent = "표시할 데이터가 없습니다.";
+          return;
+        }
+        const max = Math.max(1, ...sorted.map((r) => Number(r.active_subscribers || 0)));
+        const latest = sorted[sorted.length - 1];
+        const prev = sorted.length >= 2 ? sorted[sorted.length - 2] : null;
+        const latestValue = Number(latest.active_subscribers || 0);
+        const prevValue = Number(prev ? prev.active_subscribers : 0);
+        const avg = Math.round(sorted.reduce((acc, r) => acc + Number(r.active_subscribers || 0), 0) / sorted.length);
+        const delta = latestValue - prevValue;
+        activeTrendMeta.textContent = `최신주 ${latest.week_start}: ${n(latestValue)}명 · 전주 대비 ${fmtDelta(delta)}명 · 10주 평균 ${n(avg)}명`;
+
+        activeBars.innerHTML = sorted.map((r, idx) => {
+          const value = Number(r.active_subscribers || 0);
+          const h = Math.max(8, Math.round((value / max) * 120));
+          const isLatest = idx === sorted.length - 1;
+          return `
+            <div class="bar-col ${isLatest ? "latest" : ""}" title="${r.week_start} · 활성 ${n(value)}명">
+              <div class="bar-track"><div class="bar" style="height:${h}px"></div></div>
+              <div class="bar-label">${r.week_start.slice(5)}<br><strong>${n(value)}</strong></div>
+            </div>
+          `;
+        }).join("");
+      }
+
+      function renderRequestMix(latest) {
+        if (!latest) {
+          requestMix.innerHTML = "";
+          return;
+        }
+
+        const total = Math.max(1,
+          Number(latest.request_return_count || 0)
+          + Number(latest.request_takeover_count || 0)
+          + Number(latest.request_purchase_count || 0)
+        );
+
+        const rows = [
+          ["반납형", Number(latest.request_return_count || 0), "fill-a"],
+          ["인수형", Number(latest.request_takeover_count || 0), "fill-b"],
+          ["구매", Number(latest.request_purchase_count || 0), "fill-c"]
+        ];
+
+        requestMix.innerHTML = rows.map(([label, count, cls]) => {
+          const ratio = count / total;
+          return `
+            <div class="stack-item">
+              <div class="stack-label">${label}</div>
+              <div class="stack-track"><div class="stack-fill ${cls}" style="width:${(ratio * 100).toFixed(1)}%"></div></div>
+              <div>${n(count)} (${pct(ratio)})</div>
+            </div>
+          `;
+        }).join("");
+      }
+
+      function renderInsights(latest, weeklyRows, typeRows) {
+        if (!latest) {
+          insightList.innerHTML = "<li>데이터가 없어 인사이트를 계산할 수 없습니다.</li>";
+          return;
+        }
+
+        const items = [];
+        const churn = Number(latest.churn_rate || 0);
+        const ontime = Number(latest.ontime_completion_rate || 0);
+        const backlog = Number(latest.backlog_open_count || 0);
+        const d1 = Number(latest.overdue_d1_count || 0);
+
+        if (churn > 0.11) items.push(`이탈률 ${pct(churn)}로 높은 편입니다. 해지/철회 사유 Top3를 우선 분류하세요.`);
+        else items.push(`이탈률 ${pct(churn)}로 안정 구간입니다. 유지율 방어 전략을 유지하세요.`);
+
+        if (ontime < 0.9) items.push(`예정일내 처리 완료율 ${pct(ontime)}로 낮습니다. D-1 미완료(${n(d1)}건)와 백로그(${n(backlog)}건) 우선 정리 필요.`);
+        else items.push(`예정일내 처리 완료율 ${pct(ontime)}로 목표 구간입니다.`);
+
+        const last2 = [...weeklyRows].slice(0, 2);
+        if (last2.length === 2) {
+          const prev = Number(last2[1].churn_rate || 0);
+          const delta = churn - prev;
+          items.push(`전주 대비 이탈률 ${delta >= 0 ? "증가" : "감소"} 폭: ${pct(Math.abs(delta))}p`);
+        }
+
+        if (typeRows.length) {
+          const top = typeRows[0];
+          items.push(`최다 요청유형: '${top.request_type_name_ko}' (${n(top.request_count)}건, ${pct(top.request_ratio)})`);
+        }
+
+        insightList.innerHTML = items.map((x) => `<li>${x}</li>`).join("");
+      }
+
+      function signalState(level) {
+        if (level >= 2) return { cls: "danger", label: "경고" };
+        if (level === 1) return { cls: "warn", label: "주의" };
+        return { cls: "good", label: "안정" };
+      }
+
+      function renderSlackSignals(latest, weeklyRows, typeRows) {
+        if (!latest) {
+          slackSignalGrid.innerHTML = `<div class="signal-item"><div class="signal-desc">데이터가 없어 보조 신호를 계산할 수 없습니다.</div></div>`;
+          return;
+        }
+
+        const prev = weeklyRows.length >= 2 ? weeklyRows[1] : null;
+        const churn = Number(latest.churn_rate || 0);
+        const churnDelta = prev ? churn - Number(prev.churn_rate || 0) : 0;
+        const ontime = Number(latest.ontime_completion_rate || 0);
+        const overdue = Number(latest.overdue_d1_count || 0);
+        const backlog = Number(latest.backlog_open_count || 0);
+        const totalReq = Number(latest.total_request_count || 0);
+        const recent = weeklyRows.slice(0, 4);
+        const avgReq = recent.length ? recent.reduce((acc, r) => acc + Number(r.total_request_count || 0), 0) / recent.length : totalReq;
+        const volumeShock = avgReq > 0 ? totalReq / avgReq : 1;
+        const topType = typeRows && typeRows.length ? typeRows[0] : null;
+        const topRatio = Number(topType ? topType.request_ratio : 0);
+
+        const rows = [];
+
+        const churnLevel = churn >= 0.12 || churnDelta >= 0.02 ? 2 : (churn >= 0.09 || churnDelta >= 0.01 ? 1 : 0);
+        const churnState = signalState(churnLevel);
+        rows.push({
+          title: "해지/철회 급증 신호",
+          ...churnState,
+          desc: `최신 이탈률 ${pct(churn)}${prev ? `, 전주 대비 ${churnDelta >= 0 ? "+" : ""}${pct(Math.abs(churnDelta))}p` : ""}`,
+          action: "해지 사유 상위 3개를 즉시 분류하고, 모델/컬러 변경·SLA 지연 케이스와 교차 점검하세요."
+        });
+
+        const slaLevel = ontime < 0.86 || overdue >= 55 || backlog >= 260 ? 2 : (ontime < 0.9 || overdue >= 40 || backlog >= 180 ? 1 : 0);
+        const slaState = signalState(slaLevel);
+        rows.push({
+          title: "SLA 하락 선행 신호",
+          ...slaState,
+          desc: `예정일내 완료율 ${pct(ontime)} · D-1 미완료 ${n(overdue)}건 · 백로그 ${n(backlog)}건`,
+          action: "D-1 미완료 유형부터 우선순위 큐를 분리해 당일 처리 슬롯을 확보하세요."
+        });
+
+        const mixLevel = topRatio >= 0.42 ? 2 : (topRatio >= 0.33 ? 1 : 0);
+        const mixState = signalState(mixLevel);
+        rows.push({
+          title: "요청유형 쏠림 신호",
+          ...mixState,
+          desc: topType
+            ? `상위 유형 '${topType.request_type_name_ko}' 비중 ${pct(topRatio)} (${n(topType.request_count)}건)`
+            : "요청유형 데이터가 부족합니다.",
+          action: "쏠림 유형 전용 처리 가이드를 분리하고 담당자별 WIP를 일시 재배치하세요."
+        });
+
+        const volumeLevel = volumeShock >= 1.3 ? 2 : (volumeShock >= 1.15 ? 1 : 0);
+        const volumeState = signalState(volumeLevel);
+        rows.push({
+          title: "물량 급증 신호",
+          ...volumeState,
+          desc: `총 요청 ${n(totalReq)}건 · 최근 4주 평균 대비 ${(volumeShock * 100).toFixed(0)}%`,
+          action: "급증 주차에는 접수 후 첫 액션 SLA를 별도 모니터링하고, 미배정 건을 먼저 해소하세요."
+        });
+
+        slackSignalGrid.innerHTML = rows.map((row) => `
+          <article class="signal-item">
+            <div class="signal-head">
+              <div class="signal-title">${row.title}</div>
+              <span class="signal-pill ${row.cls}">${row.label}</span>
+            </div>
+            <div class="signal-desc">${row.desc}</div>
+            <div class="signal-action">권장 액션: ${row.action}</div>
+          </article>
+        `).join("");
+      }
+
+      function renderTypeTable(rows) {
+        typeBody.innerHTML = rows.map((r) => `
+          <tr>
+            <td>${r.request_type_code}</td>
+            <td>${r.request_type_name_ko}</td>
+            <td>${n(r.request_count)}</td>
+            <td>${pct(r.request_ratio)}</td>
+          </tr>
+        `).join("");
+      }
+
+      function showMainView() {
+        detailView.style.display = "none";
+        mainView.style.display = "block";
+        currentDetailMetric = null;
+      }
+
+      function showDetailView() {
+        mainView.style.display = "none";
+        detailView.style.display = "block";
+      }
+
+      function mainUrl() {
+        return `${window.location.pathname}${window.location.search}`;
+      }
+
+      function detailUrl(metricKey) {
+        return `${window.location.pathname}${window.location.search}#metric=${encodeURIComponent(metricKey)}`;
+      }
+
+      function metricFromHash() {
+        if (!window.location.hash.startsWith("#metric=")) return null;
+        return decodeURIComponent(window.location.hash.replace("#metric=", "").trim());
+      }
+
+      function setActiveLnbByTarget(targetId) {
+        lnbItems.forEach((item) => {
+          item.classList.toggle("active", item.getAttribute("data-target") === targetId);
+        });
+      }
+
+      function goSectionFromLnb(targetId) {
+        const el = document.getElementById(targetId);
+        if (!el) return;
+        if (detailView.style.display !== "none") {
+          showMainView();
+          history.replaceState({ view: "main" }, "", mainUrl());
+        }
+        setActiveLnbByTarget(targetId);
+        el.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+
+      function openMetricDetail(metricKey, options = {}) {
+        const { pushHistory = true } = options;
+        const meta = METRIC_META[metricKey];
+        if (!meta || !weeklyRowsCache.length) return;
+
+        const rows = [...weeklyRowsCache].reverse().slice(-10);
+        const vals = rows.map((r) => Number(meta.value(r)));
+        const maxVal = Math.max(1, ...vals);
+        const latestRaw = vals.length ? vals[vals.length - 1] : 0;
+        const prevRaw = vals.length >= 2 ? vals[vals.length - 2] : 0;
+        const avgRaw = vals.length ? (vals.reduce((acc, v) => acc + v, 0) / vals.length) : 0;
+        const latestWeek = rows.length ? rows[rows.length - 1].week_start : "-";
+        detailTrendMeta.textContent = `최신주 ${latestWeek}: ${meta.render(latestRaw)} · 전주 대비 ${meta.render(latestRaw - prevRaw)} · 10주 평균 ${meta.render(avgRaw)}`;
+
+        detailTitle.textContent = `${meta.label} 상세`;
+        detailSub.textContent = meta.description;
+        detailFormula.textContent = meta.formula;
+        detailGuide.textContent = meta.guide;
+        detailInsights.innerHTML = meta.insights.map((x) => `<li>${x}</li>`).join("");
+        renderDetailDrivers(metricKey, latestRowCache, typeRowsCache, weeklyRowsCache);
+
+        const goal = evaluateGoal(metricKey, latestRowCache);
+        if (goal) {
+          detailFormula.textContent = `${meta.formula} (현재 ${meta.render(goal.current)} · ${goal.label} · 상태: ${goal.statusText})`;
+        }
+
+        detailTrend.innerHTML = rows.map((r, idx) => {
+          const raw = Number(meta.value(r));
+          const h = Math.max(6, Math.round((raw / maxVal) * 84));
+          const isLatest = idx === rows.length - 1;
+          return `
+            <div class="tcol ${isLatest ? "latest" : ""}" title="${r.week_start} · ${meta.render(raw)}">
+              <div class="ttrack"><div class="tbar" style="height:${h}px"></div></div>
+              <div class="tlab">${r.week_start.slice(5)}<br>${meta.render(raw)}</div>
+            </div>
+          `;
+        }).join("");
+
+        currentDetailMetric = metricKey;
+        showDetailView();
+        if (pushHistory) {
+          history.pushState({ view: "detail", metric: metricKey }, "", detailUrl(metricKey));
+        }
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
+
+      async function renderSyncStatus() {
+        try {
+          const res = await fetch("/api/sync/status");
+          const data = await res.json();
+          const s = data.status || {};
+          if (!s.status) {
+            syncMeta.textContent = "대기";
+            return;
+          }
+          if (s.status === "success") {
+            syncMeta.textContent = `정상 · ${s.at || ""}`;
+            syncMeta.style.background = "#e8f9f5";
+            syncMeta.style.color = "#0e8b76";
+            validationList.innerHTML = `
+              <li>동기화 상태: 정상 (${s.at || "-"})</li>
+              <li>데이터 소스: Databricks + Redash (주간 집계)</li>
+              <li>검증 권장: 매주 수요일 Raw 샘플 20건 수동 대조</li>
+            `;
+          } else if (s.status === "failed") {
+            syncMeta.textContent = `실패 · ${s.at || ""}`;
+            syncMeta.style.background = "#ffe8ee";
+            syncMeta.style.color = "#d33f65";
+            validationList.innerHTML = `
+              <li>동기화 상태: 실패 (${s.at || "-"})</li>
+              <li>최근 로그를 확인하고 수동 재동기화를 수행하세요.</li>
+              <li>실패 주차 데이터는 의사결정용으로 사용하지 않는 것을 권장합니다.</li>
+            `;
+          } else {
+            syncMeta.textContent = `${s.status} · ${s.at || ""}`;
+            validationList.innerHTML = `
+              <li>동기화 상태: ${s.status} (${s.at || "-"})</li>
+              <li>상태가 success인지 확인 후 지표를 해석하세요.</li>
+            `;
+          }
+        } catch (_) {
+          syncMeta.textContent = "상태 확인 실패";
+          syncMeta.style.background = "#fff4e2";
+          syncMeta.style.color = "#c38216";
+          validationList.innerHTML = `
+            <li>동기화 상태 확인 실패</li>
+            <li>네트워크/서버 상태 점검 후 다시 시도하세요.</li>
+          `;
+        }
+      }
+
+      async function load() {
+        const start = startInput.value;
+        const end = endInput.value;
+
+        const [weeklyRes, latestRes] = await Promise.all([
+          fetch(`/api/ops/weekly?start=${start}&end=${end}`),
+          fetch(`/api/ops/latest`)
+        ]);
+
+        const weeklyData = await weeklyRes.json();
+        const latestData = await latestRes.json();
+        const weeklyRows = weeklyData.rows || [];
+        weeklyRowsCache = weeklyRows;
+        const latest = latestData.row;
+        latestRowCache = latest;
+
+        renderKpis(latest);
+        renderGoalBoard(latest);
+        renderWeeklyTable(weeklyRows);
+        renderActiveTrend(weeklyRows);
+        renderRequestMix(latest);
+
+        const typeRes = await fetch(`/api/ops/request-types?week=${latest ? latest.week_start : ""}`);
+        const typeData = await typeRes.json();
+        const typeRows = typeData.rows || [];
+        typeRowsCache = typeRows;
+
+        renderTypeTable(typeRows);
+        renderInsights(latest, weeklyRows, typeRows);
+        renderSlackSignals(latest, weeklyRows, typeRows);
+        await renderSyncStatus();
+      }
+
+      async function init() {
+        const initialMetricFromHash = metricFromHash();
+        history.replaceState({ view: "main" }, "", mainUrl());
+        setActiveLnbByTarget("sectionOverview");
+
+        const weeklyRes = await fetch(`/api/ops/weekly?start=1900-01-01&end=2999-12-31`);
+        const weeklyData = await weeklyRes.json();
+        const rows = weeklyData.rows || [];
+
+        if (!rows.length) {
+          const today = new Date().toISOString().slice(0, 10);
+          startInput.value = today;
+          endInput.value = today;
+          await load();
+          return;
+        }
+
+        const latest = rows[0].week_start;
+        const earliest = rows[rows.length - 1].week_start;
+        startInput.value = earliest;
+        endInput.value = latest;
+        await load();
+
+        const metricKey = initialMetricFromHash;
+        if (metricKey && METRIC_META[metricKey]) {
+          openMetricDetail(metricKey, { pushHistory: true });
+        }
+      }
+
+      loadBtn.addEventListener("click", load);
+      kpiToggleBtn.addEventListener("click", () => {
+        showAllKpis = !showAllKpis;
+        renderKpis(latestRowCache);
+      });
+      lnbItems.forEach((item) => {
+        item.addEventListener("click", () => goSectionFromLnb(item.getAttribute("data-target")));
+      });
+      document.addEventListener("click", (e) => {
+        const btn = e.target.closest(".kpi-btn");
+        if (!btn) return;
+        openMetricDetail(btn.getAttribute("data-metric"), { pushHistory: true });
+      });
+      backBtn.addEventListener("click", () => {
+        if (history.state && history.state.view === "detail") {
+          history.back();
+        } else {
+          showMainView();
+          history.replaceState({ view: "main" }, "", mainUrl());
+        }
+      });
+      window.addEventListener("popstate", (event) => {
+        const state = event.state || {};
+        if (state.view === "detail" && state.metric) {
+          openMetricDetail(state.metric, { pushHistory: false });
+          return;
+        }
+        showMainView();
+        setActiveLnbByTarget("sectionOverview");
+      });
+      window.addEventListener("hashchange", () => {
+        const metricKey = metricFromHash();
+        if (metricKey && METRIC_META[metricKey]) {
+          openMetricDetail(metricKey, { pushHistory: false });
+          return;
+        }
+        showMainView();
+        setActiveLnbByTarget("sectionOverview");
+      });
+
+      init();
+    </script>
+  </body>
+</html>
