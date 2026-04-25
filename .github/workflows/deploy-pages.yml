@@ -19,6 +19,8 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      REDASH_API_KEY: ${{ secrets.REDASH_API_KEY }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -32,13 +34,13 @@ jobs:
         run: python3 scripts/init_db.py
 
       - name: Sync data from Redash
-        if: ${{ secrets.REDASH_API_KEY != '' }}
+        if: ${{ env.REDASH_API_KEY != '' }}
         run: |
           python3 scripts/refresh_validate_daily.py \
-            --api-key "${{ secrets.REDASH_API_KEY }}"
+            --api-key "${{ env.REDASH_API_KEY }}"
 
       - name: Seed sample when secret missing (first run fallback)
-        if: ${{ secrets.REDASH_API_KEY == '' }}
+        if: ${{ env.REDASH_API_KEY == '' }}
         run: python3 scripts/seed_sample_data.py
 
       - name: Build static bundle
@@ -62,4 +64,3 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
-
