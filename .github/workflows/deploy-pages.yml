@@ -5,7 +5,7 @@ on:
   push:
     branches: ["main"]
   schedule:
-    - cron: "10 0 * * *" # 09:10 KST
+    - cron: "10 15 * * *" # 00:10 KST
 
 permissions:
   contents: read
@@ -39,9 +39,48 @@ jobs:
           python3 scripts/refresh_validate_daily.py \
             --api-key "${{ env.REDASH_API_KEY }}"
 
+      - name: Write sync status (redash)
+        if: ${{ env.REDASH_API_KEY != '' }}
+        run: |
+          python3 - <<'PY'
+          import json
+          from datetime import datetime, timezone
+          from pathlib import Path
+          root = Path(".")
+          report = root / "reports" / "validation" / "latest_validation.json"
+          at = datetime.now(timezone.utc).astimezone().strftime("%Y-%m-%d %H:%M:%S")
+          payload = {
+            "status": "success",
+            "reason": "github_actions_redash",
+            "at": at,
+            "report_found": report.exists(),
+          }
+          (root / "data").mkdir(parents=True, exist_ok=True)
+          (root / "data" / "sync_status.json").write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
+          PY
+
       - name: Seed sample when secret missing (first run fallback)
         if: ${{ env.REDASH_API_KEY == '' }}
         run: python3 scripts/seed_sample_data.py
+
+      - name: Write sync status (sample)
+        if: ${{ env.REDASH_API_KEY == '' }}
+        run: |
+          python3 - <<'PY'
+          import json
+          from datetime import datetime, timezone
+          from pathlib import Path
+          at = datetime.now(timezone.utc).astimezone().strftime("%Y-%m-%d %H:%M:%S")
+          payload = {
+            "status": "success",
+            "reason": "github_actions_sample_seed",
+            "at": at,
+            "report_found": False,
+          }
+          root = Path(".")
+          (root / "data").mkdir(parents=True, exist_ok=True)
+          (root / "data" / "sync_status.json").write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
+          PY
 
       - name: Build static bundle
         run: python3 scripts/build_static_bundle.py
