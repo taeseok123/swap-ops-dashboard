@@ -1526,7 +1526,7 @@
           weeklyRows = weeklyRows.filter((r) => r.week_start >= s && r.week_start <= e);
         }
         weeklyRowsCache = weeklyRows;
-        const latest = latestData.row;
+        const latest = isStaticMode ? (weeklyRows[0] || null) : latestData.row;
         latestRowCache = latest;
 
         renderKpis(latest);
