@@ -44,11 +44,12 @@ jobs:
         run: |
           python3 - <<'PY'
           import json
-          from datetime import datetime, timezone
+          from datetime import datetime, timezone, timedelta
           from pathlib import Path
           root = Path(".")
           report = root / "reports" / "validation" / "latest_validation.json"
-          at = datetime.now(timezone.utc).astimezone().strftime("%Y-%m-%d %H:%M:%S")
+          kst = timezone(timedelta(hours=9))
+          at = datetime.now(kst).strftime("%Y-%m-%d %H:%M:%S KST")
           payload = {
             "status": "success",
             "reason": "github_actions_redash",
@@ -68,9 +69,10 @@ jobs:
         run: |
           python3 - <<'PY'
           import json
-          from datetime import datetime, timezone
+          from datetime import datetime, timezone, timedelta
           from pathlib import Path
-          at = datetime.now(timezone.utc).astimezone().strftime("%Y-%m-%d %H:%M:%S")
+          kst = timezone(timedelta(hours=9))
+          at = datetime.now(kst).strftime("%Y-%m-%d %H:%M:%S KST")
           payload = {
             "status": "success",
             "reason": "github_actions_sample_seed",
