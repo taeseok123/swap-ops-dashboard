@@ -16,6 +16,7 @@ data/sync_status.json
 logs/
 reports/
 tmp/
+dist/
 
 # macOS
 .DS_Store

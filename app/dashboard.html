@@ -873,6 +873,27 @@
       let latestRowCache = null;
       let currentDetailMetric = null;
       let showAllKpis = false;
+      let isStaticMode = false;
+
+      function withBase(path) {
+        const base = document.querySelector("base")?.getAttribute("href") || "";
+        if (!base) return path;
+        return `${base.replace(/\/$/, "")}/${path.replace(/^\//, "")}`;
+      }
+
+      async function getJsonWithFallback(apiPath, staticPath) {
+        try {
+          const res = await fetch(apiPath);
+          if (!res.ok) throw new Error(`api status ${res.status}`);
+          isStaticMode = false;
+          return await res.json();
+        } catch (_) {
+          const sres = await fetch(withBase(staticPath));
+          if (!sres.ok) throw new Error(`static status ${sres.status}`);
+          isStaticMode = true;
+          return await sres.json();
+        }
+      }
 
       const METRIC_META = {
         active_subscribers: {
@@ -1448,15 +1469,14 @@
 
       async function renderSyncStatus() {
         try {
-          const res = await fetch("/api/sync/status");
-          const data = await res.json();
+          const data = await getJsonWithFallback("/api/sync/status", "static/sync_status.json");
           const s = data.status || {};
           if (!s.status) {
-            syncMeta.textContent = "대기";
+            syncMeta.textContent = isStaticMode ? "정적 모드" : "대기";
             return;
           }
           if (s.status === "success") {
-            syncMeta.textContent = `정상 · ${s.at || ""}`;
+            syncMeta.textContent = `${isStaticMode ? "정적 배포" : "정상"} · ${s.at || ""}`;
             syncMeta.style.background = "#e8f9f5";
             syncMeta.style.color = "#0e8b76";
             validationList.innerHTML = `
@@ -1495,14 +1515,16 @@
         const start = startInput.value;
         const end = endInput.value;
 
-        const [weeklyRes, latestRes] = await Promise.all([
-          fetch(`/api/ops/weekly?start=${start}&end=${end}`),
-          fetch(`/api/ops/latest`)
+        const [weeklyData, latestData] = await Promise.all([
+          getJsonWithFallback(`/api/ops/weekly?start=${start}&end=${end}`, "static/weekly.json"),
+          getJsonWithFallback("/api/ops/latest", "static/latest.json")
         ]);
-
-        const weeklyData = await weeklyRes.json();
-        const latestData = await latestRes.json();
-        const weeklyRows = weeklyData.rows || [];
+        let weeklyRows = weeklyData.rows || [];
+        if (isStaticMode) {
+          const s = start || "1900-01-01";
+          const e = end || "2999-12-31";
+          weeklyRows = weeklyRows.filter((r) => r.week_start >= s && r.week_start <= e);
+        }
         weeklyRowsCache = weeklyRows;
         const latest = latestData.row;
         latestRowCache = latest;
@@ -1513,9 +1535,11 @@
         renderActiveTrend(weeklyRows);
         renderRequestMix(latest);
 
-        const typeRes = await fetch(`/api/ops/request-types?week=${latest ? latest.week_start : ""}`);
-        const typeData = await typeRes.json();
-        const typeRows = typeData.rows || [];
+        const typeData = await getJsonWithFallback(`/api/ops/request-types?week=${latest ? latest.week_start : ""}`, "static/request-types.json");
+        let typeRows = typeData.rows || [];
+        if (isStaticMode && latest && latest.week_start) {
+          typeRows = typeRows.filter((r) => r.week_start === latest.week_start);
+        }
         typeRowsCache = typeRows;
 
         renderTypeTable(typeRows);
@@ -1529,8 +1553,7 @@
         history.replaceState({ view: "main" }, "", mainUrl());
         setActiveLnbByTarget("sectionOverview");
 
-        const weeklyRes = await fetch(`/api/ops/weekly?start=1900-01-01&end=2999-12-31`);
-        const weeklyData = await weeklyRes.json();
+        const weeklyData = await getJsonWithFallback(`/api/ops/weekly?start=1900-01-01&end=2999-12-31`, "static/weekly.json");
         const rows = weeklyData.rows || [];
 
         if (!rows.length) {

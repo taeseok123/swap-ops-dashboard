@@ -107,6 +107,34 @@ python3 app/server.py
 - 롤백 스크립트: `scripts/rollback_remote.sh`
 - 릴리즈 태그: `scripts/release_tag.sh`
 
+## 무상 실배포 (GitHub Pages + Actions)
+
+서버 비용 없이 정적 배포 + 일일 자동 갱신을 사용합니다.
+
+### 1) GitHub 저장소로 push
+```bash
+git remote add origin <YOUR_GITHUB_REPO_URL>
+git push -u origin main
+```
+
+### 2) GitHub Pages 활성화
+- GitHub 저장소 `Settings > Pages`
+- Source: `GitHub Actions` 선택
+
+### 3) Redash 키 등록
+- `Settings > Secrets and variables > Actions`
+- `REDASH_API_KEY` 생성
+
+### 4) 자동 배포/갱신
+- 워크플로: `.github/workflows/deploy-pages.yml`
+- 트리거:
+  - `main` push 시 즉시 배포
+  - 매일 09:10(KST) 자동 갱신/배포
+
+### 5) 동작 방식
+- Actions가 데이터 동기화 후 `dist/static/*.json` 생성
+- `app/dashboard.html`은 `/api/*`가 없으면 자동으로 정적 JSON(`static/*`)을 사용
+
 ## 매일 자동 최신화 + 신뢰도 검증
 
 ### 1) 수동 1회 실행 (동기화 + 크로스체크)
