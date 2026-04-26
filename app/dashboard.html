@@ -349,6 +349,17 @@
         line-height: 1.45;
       }
 
+      .goal-meaning,
+      .goal-formula {
+        font-size: 11px;
+        line-height: 1.42;
+        color: #486482;
+      }
+
+      .goal-formula {
+        color: #5a7593;
+      }
+
       .bars {
         display: grid;
         grid-template-columns: repeat(10, minmax(0, 1fr));
@@ -1100,16 +1111,37 @@
           return;
         }
         const guide = {
-          retention_rate: "선택 기간 주간 평균 · 목표 93% 이상",
-          churn_rate: "선택 기간 주간 평균 · 목표 8% 이하",
-          ontime_completion_rate: "선택 기간 주간 평균 · 목표 90% 이상",
-          overdue_d1_count: "기간 종료 주차 기준 · 목표 40건 이하",
-          wow_active_delta: "선택 기간 신규-해지 누적값"
+          retention_rate: {
+            scope: "선택 기간 주간 평균 · 목표 93% 이상",
+            meaning: "의미: 활성 구독자가 유지된 비율",
+            formula: "산식: retained_subscribers / active_start_subscribers"
+          },
+          churn_rate: {
+            scope: "선택 기간 주간 평균 · 목표 8% 이하",
+            meaning: "의미: 활성 구독자 중 이탈한 비율",
+            formula: "산식: churned_subscribers / active_start_subscribers"
+          },
+          ontime_completion_rate: {
+            scope: "선택 기간 주간 평균 · 목표 90% 이상",
+            meaning: "의미: 예정일 안에 처리 완료된 비율",
+            formula: "산식: ontime_cnt / due_cnt"
+          },
+          overdue_d1_count: {
+            scope: "기간 종료 주차 기준 · 목표 40건 이하",
+            meaning: "의미: 예정일 D-1 시점 미완료 건수",
+            formula: "산식: 종료 주차 overdue_d1_count"
+          },
+          wow_active_delta: {
+            scope: "선택 기간 누적값",
+            meaning: "의미: 활성 구독자 순증감",
+            formula: "산식: Σ(신규 구독자 - 해지/철회)"
+          }
         };
         const keys = ["retention_rate", "churn_rate", "ontime_completion_rate", "overdue_d1_count", "wow_active_delta"];
         goalBoard.innerHTML = keys.map((key) => {
           const meta = METRIC_META[key];
           const raw = meta.value(latest);
+          const g = guide[key] || {};
           const goal = evaluateGoal(key, latest);
           let goalLine = "추적";
           let cls = "";
@@ -1122,7 +1154,9 @@
               <div class="goal-label">${meta.label}</div>
               <div class="goal-value ${cls}">${meta.render(raw)}</div>
               <div class="goal-sub">${goalLine}</div>
-              <div class="goal-help">${guide[key] || "선택 기간 기준"}</div>
+              <div class="goal-help">${g.scope || "선택 기간 기준"}</div>
+              <div class="goal-meaning">${g.meaning || ""}</div>
+              <div class="goal-formula">${g.formula || ""}</div>
             </div>
           `;
         }).join("");
