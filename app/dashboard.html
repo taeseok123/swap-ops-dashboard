@@ -312,34 +312,41 @@
 
       .goal-board {
         margin-top: 10px;
-        display: flex;
-        flex-wrap: wrap;
+        display: grid;
+        grid-template-columns: repeat(5, minmax(0, 1fr));
         gap: 8px;
       }
 
       .goal-item {
         border: 1px solid #d8e4f4;
-        border-radius: 999px;
+        border-radius: 14px;
         background: #ffffff;
-        padding: 7px 10px;
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
+        padding: 9px 11px;
+        display: grid;
+        gap: 4px;
       }
 
       .goal-label {
-        font-size: 11px;
+        font-size: 12px;
+        font-weight: 700;
         color: #56708f;
       }
 
       .goal-value {
-        font-size: 12px;
+        font-size: 20px;
         font-weight: 700;
+        letter-spacing: -0.02em;
       }
 
       .goal-sub {
         font-size: 11px;
         color: var(--muted);
+      }
+
+      .goal-help {
+        font-size: 11px;
+        color: #5c7596;
+        line-height: 1.45;
       }
 
       .bars {
@@ -636,6 +643,7 @@
 
       @media (max-width: 1360px) {
         .kpi-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+        .goal-board { grid-template-columns: repeat(3, minmax(0, 1fr)); }
       }
 
       @media (max-width: 1180px) {
@@ -657,6 +665,7 @@
         .filters { grid-auto-flow: row; }
         .kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
         .signal-grid { grid-template-columns: 1fr; }
+        .goal-board { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       }
 
       @media (max-width: 760px) {
@@ -671,6 +680,7 @@
         .title { font-size: 24px; }
         .bars,
         .trend-bars { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+        .goal-board { grid-template-columns: 1fr; }
       }
     </style>
   </head>
@@ -1089,6 +1099,13 @@
           goalBoard.innerHTML = "";
           return;
         }
+        const guide = {
+          retention_rate: "선택 기간 주간 평균 · 목표 93% 이상",
+          churn_rate: "선택 기간 주간 평균 · 목표 8% 이하",
+          ontime_completion_rate: "선택 기간 주간 평균 · 목표 90% 이상",
+          overdue_d1_count: "기간 종료 주차 기준 · 목표 40건 이하",
+          wow_active_delta: "선택 기간 신규-해지 누적값"
+        };
         const keys = ["retention_rate", "churn_rate", "ontime_completion_rate", "overdue_d1_count", "wow_active_delta"];
         goalBoard.innerHTML = keys.map((key) => {
           const meta = METRIC_META[key];
@@ -1105,6 +1122,7 @@
               <div class="goal-label">${meta.label}</div>
               <div class="goal-value ${cls}">${meta.render(raw)}</div>
               <div class="goal-sub">${goalLine}</div>
+              <div class="goal-help">${guide[key] || "선택 기간 기준"}</div>
             </div>
           `;
         }).join("");
