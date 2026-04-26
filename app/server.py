@@ -203,6 +203,37 @@ class Handler(BaseHTTPRequestHandler):
             return
 
         if path == "/api/ops/request-types":
+            start = qs.get("start", [""])[0]
+            end = qs.get("end", [""])[0]
+            if start and end:
+                rows = query_all(
+                    """
+                    WITH filtered AS (
+                      SELECT
+                        request_type_code,
+                        request_type_name_ko,
+                        request_count
+                      FROM weekly_request_type_counts
+                      WHERE week_start BETWEEN ? AND ?
+                    ),
+                    totals AS (
+                      SELECT COALESCE(SUM(request_count), 0) AS total_count FROM filtered
+                    )
+                    SELECT
+                      f.request_type_code,
+                      f.request_type_name_ko,
+                      SUM(f.request_count) AS request_count,
+                      ROUND(SUM(f.request_count) * 1.0 / NULLIF(t.total_count, 0), 4) AS request_ratio
+                    FROM filtered f
+                    CROSS JOIN totals t
+                    GROUP BY f.request_type_code, f.request_type_name_ko, t.total_count
+                    ORDER BY request_count DESC
+                    """,
+                    (start, end),
+                )
+                self._send_json({"start": start, "end": end, "rows": rows})
+                return
+
             week = qs.get("week", [""])[0]
             if not week:
                 last = query_all("SELECT week_start FROM weekly_ops_metrics ORDER BY week_start DESC LIMIT 1")

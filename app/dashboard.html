@@ -736,7 +736,7 @@
             </article>
 
             <article class="card">
-              <h3>최근 주차 고객요청 구성</h3>
+              <h3>선택 기간 고객요청 구성</h3>
               <div id="requestMix" class="stack"></div>
             </article>
 
@@ -1380,6 +1380,54 @@
         `).join("");
       }
 
+      function aggregateWeeklyRows(rows) {
+        if (!rows || !rows.length) return null;
+        const latest = rows[0];
+        const oldest = rows[rows.length - 1];
+        const sum = (key) => rows.reduce((acc, r) => acc + Number(r[key] || 0), 0);
+        const avg = (key) => rows.reduce((acc, r) => acc + Number(r[key] || 0), 0) / rows.length;
+
+        return {
+          week_start: `${oldest.week_start} ~ ${latest.week_start}`,
+          active_subscribers: Number(latest.active_subscribers || 0),  // 기간 종료 시점 스냅샷
+          new_subscribers: sum("new_subscribers"),
+          churned_subscribers: sum("churned_subscribers"),
+          retained_subscribers: sum("retained_subscribers"),
+          retention_rate: avg("retention_rate"),
+          churn_rate: avg("churn_rate"),
+          wow_active_delta: sum("wow_active_delta"),
+          request_return_count: sum("request_return_count"),
+          request_takeover_count: sum("request_takeover_count"),
+          request_purchase_count: sum("request_purchase_count"),
+          ontime_completion_rate: avg("ontime_completion_rate"),
+          backlog_open_count: Number(latest.backlog_open_count || 0),  // 적체는 종료 시점 기준
+          overdue_d1_count: Number(latest.overdue_d1_count || 0),
+          total_request_count: sum("total_request_count")
+        };
+      }
+
+      function aggregateTypeRows(rows, start, end) {
+        const filtered = rows.filter((r) => {
+          const w = String(r.week_start || "");
+          return (!start || w >= start) && (!end || w <= end);
+        });
+        const bucket = new Map();
+        for (const r of filtered) {
+          const code = r.request_type_code || "UNKNOWN";
+          const name = r.request_type_name_ko || code;
+          const key = `${code}::${name}`;
+          const prev = bucket.get(key) || { request_type_code: code, request_type_name_ko: name, request_count: 0 };
+          prev.request_count += Number(r.request_count || 0);
+          bucket.set(key, prev);
+        }
+        const merged = Array.from(bucket.values()).sort((a, b) => b.request_count - a.request_count);
+        const total = merged.reduce((acc, r) => acc + Number(r.request_count || 0), 0);
+        return merged.map((r) => ({
+          ...r,
+          request_ratio: total > 0 ? Number(r.request_count) / total : 0
+        }));
+      }
+
       function showMainView() {
         detailView.style.display = "none";
         mainView.style.display = "block";
@@ -1515,10 +1563,7 @@
         const start = startInput.value;
         const end = endInput.value;
 
-        const [weeklyData, latestData] = await Promise.all([
-          getJsonWithFallback(`/api/ops/weekly?start=${start}&end=${end}`, "static/weekly.json"),
-          getJsonWithFallback("/api/ops/latest", "static/latest.json")
-        ]);
+        const weeklyData = await getJsonWithFallback(`/api/ops/weekly?start=${start}&end=${end}`, "static/weekly.json");
         let weeklyRows = weeklyData.rows || [];
         if (isStaticMode) {
           const s = start || "1900-01-01";
@@ -1526,7 +1571,7 @@
           weeklyRows = weeklyRows.filter((r) => r.week_start >= s && r.week_start <= e);
         }
         weeklyRowsCache = weeklyRows;
-        const latest = isStaticMode ? (weeklyRows[0] || null) : latestData.row;
+        const latest = aggregateWeeklyRows(weeklyRows);
         latestRowCache = latest;
 
         renderKpis(latest);
@@ -1535,10 +1580,10 @@
         renderActiveTrend(weeklyRows);
         renderRequestMix(latest);
 
-        const typeData = await getJsonWithFallback(`/api/ops/request-types?week=${latest ? latest.week_start : ""}`, "static/request-types.json");
+        const typeData = await getJsonWithFallback(`/api/ops/request-types?start=${start}&end=${end}`, "static/request-types.json");
         let typeRows = typeData.rows || [];
-        if (isStaticMode && latest && latest.week_start) {
-          typeRows = typeRows.filter((r) => r.week_start === latest.week_start);
+        if (isStaticMode) {
+          typeRows = aggregateTypeRows(typeRows, start, end);
         }
         typeRowsCache = typeRows;
 
