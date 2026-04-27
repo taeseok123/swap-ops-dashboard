@@ -205,11 +205,43 @@
 
       .filters button:hover { filter: brightness(1.04); }
 
+      .view-tabs {
+        margin-top: 10px;
+        display: inline-flex;
+        gap: 8px;
+        padding: 5px;
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        background: #f7fbff;
+      }
+
+      .view-tab {
+        border: 1px solid transparent;
+        border-radius: 10px;
+        padding: 8px 12px;
+        font: inherit;
+        font-size: 12px;
+        color: #4f6b8d;
+        background: transparent;
+        cursor: pointer;
+      }
+
+      .view-tab.active {
+        color: #173f7a;
+        font-weight: 700;
+        border-color: #cfe0f8;
+        background: #ffffff;
+      }
+
       .section-label {
         margin-top: 18px;
         color: #5f7392;
         font-size: 12px;
         font-weight: 700;
+      }
+
+      [data-view-panel].hidden {
+        display: none !important;
       }
 
       .narrative-grid {
@@ -744,6 +776,8 @@
         .bars,
         .trend-bars { grid-template-columns: repeat(6, minmax(0, 1fr)); }
         .goal-board { grid-template-columns: 1fr; }
+        .view-tabs { display: flex; width: 100%; }
+        .view-tab { flex: 1; }
       }
     </style>
   </head>
@@ -761,10 +795,11 @@
         </section>
 
         <nav class="menu">
-          <button class="item active" data-target="sectionOverview">기간 요약</button>
-          <button class="item" data-target="sectionQuality">원인/흐름</button>
+          <button class="item active" data-target="sectionKpi">핵심 수치</button>
           <button class="item" data-target="sectionSubscription">원본 지표</button>
           <button class="item" data-target="sectionRequests">요청유형 상세</button>
+          <button class="item" data-target="sectionOverview">기간 요약</button>
+          <button class="item" data-target="sectionQuality">원인/흐름</button>
           <button class="item" data-target="sectionValidation">검증 리포트</button>
         </nav>
 
@@ -791,8 +826,13 @@
             </div>
           </section>
 
-          <div id="sectionOverview" class="section-label">1) 이번 기간 요약</div>
-          <section class="narrative-grid">
+          <div class="view-tabs" role="tablist" aria-label="대시보드 보기 모드">
+            <button class="view-tab active" id="viewTabQuant" data-view="quant" role="tab" aria-selected="true">정량 지표</button>
+            <button class="view-tab" id="viewTabQual" data-view="qual" role="tab" aria-selected="false">인사이트·정성</button>
+          </div>
+
+          <div id="sectionOverview" class="section-label" data-view-panel="qual">기간 요약</div>
+          <section class="narrative-grid" data-view-panel="qual">
             <article class="story-card primary">
               <h3 class="story-title">한줄 요약</h3>
               <p id="summaryHeadline" class="story-headline">데이터를 불러오는 중입니다.</p>
@@ -808,16 +848,16 @@
             </article>
           </section>
 
-          <div id="goalBoard" class="goal-board"></div>
+          <div id="goalBoard" class="goal-board" data-view-panel="quant"></div>
 
-          <div class="section-head">
-            <div class="section-label">핵심 수치</div>
+          <div class="section-head" data-view-panel="quant">
+            <div id="sectionKpi" class="section-label">핵심 수치</div>
             <button id="kpiToggleBtn" class="ghost-btn">지표 더보기</button>
           </div>
-          <section class="kpi-grid" id="kpiGrid"></section>
+          <section class="kpi-grid" id="kpiGrid" data-view-panel="quant"></section>
 
-          <div id="sectionQuality" class="section-label">2) 원인/흐름 분석</div>
-          <section class="grid3">
+          <div id="sectionQuality" class="section-label" data-view-panel="qual">원인/흐름 분석</div>
+          <section class="grid3" data-view-panel="qual">
             <article class="card">
               <h3>주간 활성 구독자 추이 (최근 10주, 단위: 명)</h3>
               <p class="chart-help">막대 높이는 해당 주의 활성 구독자 수입니다. 마지막 막대가 최신 주차입니다.</p>
@@ -842,8 +882,8 @@
             </article>
           </section>
 
-          <div id="sectionSubscription" class="section-label">3) 원본 데이터 확인</div>
-          <section class="table-wrap">
+          <div id="sectionSubscription" class="section-label" data-view-panel="quant">원본 데이터 확인</div>
+          <section class="table-wrap" data-view-panel="quant">
             <table>
               <thead>
                 <tr>
@@ -866,8 +906,8 @@
             </table>
           </section>
 
-          <div id="sectionRequests" class="section-label">고객요청 유형 상세</div>
-          <section class="table-wrap">
+          <div id="sectionRequests" class="section-label" data-view-panel="quant">요청유형 상세</div>
+          <section class="table-wrap" data-view-panel="quant">
             <table>
               <thead>
                 <tr>
@@ -881,8 +921,8 @@
             </table>
           </section>
 
-          <div id="sectionValidation" class="section-label">검증 리포트</div>
-          <section class="card" id="validationCard">
+          <div id="sectionValidation" class="section-label" data-view-panel="qual">검증 리포트</div>
+          <section class="card" id="validationCard" data-view-panel="qual">
             <h3>데이터 신뢰도 체크</h3>
             <ol id="validationList" class="insights">
               <li>동기화 상태를 불러오는 중입니다.</li>
@@ -954,6 +994,8 @@
       const syncMeta = document.getElementById("syncMeta");
       const validationList = document.getElementById("validationList");
       const lnbItems = Array.from(document.querySelectorAll(".menu .item[data-target]"));
+      const viewTabs = Array.from(document.querySelectorAll(".view-tab[data-view]"));
+      const viewPanels = Array.from(document.querySelectorAll("[data-view-panel]"));
       const activeTrendMeta = document.getElementById("activeTrendMeta");
       const goalBoard = document.getElementById("goalBoard");
       const slackSignalGrid = document.getElementById("slackSignalGrid");
@@ -968,6 +1010,7 @@
       let currentDetailMetric = null;
       let showAllKpis = false;
       let isStaticMode = false;
+      let currentViewMode = "quant";
 
       function withBase(path) {
         const base = document.querySelector("base")?.getAttribute("href") || "";
@@ -1638,9 +1681,29 @@
         });
       }
 
+      function defaultSectionForMode(mode) {
+        return mode === "qual" ? "sectionOverview" : "sectionKpi";
+      }
+
+      function applyViewMode(mode) {
+        currentViewMode = mode;
+        viewTabs.forEach((tab) => {
+          const active = tab.getAttribute("data-view") === mode;
+          tab.classList.toggle("active", active);
+          tab.setAttribute("aria-selected", active ? "true" : "false");
+        });
+        viewPanels.forEach((node) => {
+          node.classList.toggle("hidden", node.getAttribute("data-view-panel") !== mode);
+        });
+      }
+
       function goSectionFromLnb(targetId) {
         const el = document.getElementById(targetId);
         if (!el) return;
+        const sectionMode = el.getAttribute("data-view-panel");
+        if (sectionMode && sectionMode !== currentViewMode) {
+          applyViewMode(sectionMode);
+        }
         if (detailView.style.display !== "none") {
           showMainView();
           history.replaceState({ view: "main" }, "", mainUrl());
@@ -1778,7 +1841,8 @@
       async function init() {
         const initialMetricFromHash = metricFromHash();
         history.replaceState({ view: "main" }, "", mainUrl());
-        setActiveLnbByTarget("sectionOverview");
+        applyViewMode("quant");
+        setActiveLnbByTarget("sectionKpi");
 
         const weeklyData = await getJsonWithFallback(`/api/ops/weekly?start=1900-01-01&end=2999-12-31`, "static/weekly.json");
         const rows = weeklyData.rows || [];
@@ -1808,6 +1872,21 @@
         showAllKpis = !showAllKpis;
         renderKpis(latestRowCache);
       });
+      viewTabs.forEach((tab) => {
+        tab.addEventListener("click", () => {
+          const mode = tab.getAttribute("data-view");
+          if (!mode) return;
+          applyViewMode(mode);
+          const target = defaultSectionForMode(mode);
+          setActiveLnbByTarget(target);
+          if (detailView.style.display !== "none") {
+            showMainView();
+            history.replaceState({ view: "main" }, "", mainUrl());
+          }
+          const el = document.getElementById(target);
+          if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+        });
+      });
       lnbItems.forEach((item) => {
         item.addEventListener("click", () => goSectionFromLnb(item.getAttribute("data-target")));
       });
@@ -1831,7 +1910,7 @@
           return;
         }
         showMainView();
-        setActiveLnbByTarget("sectionOverview");
+        setActiveLnbByTarget(defaultSectionForMode(currentViewMode));
       });
       window.addEventListener("hashchange", () => {
         const metricKey = metricFromHash();
@@ -1840,7 +1919,7 @@
           return;
         }
         showMainView();
-        setActiveLnbByTarget("sectionOverview");
+        setActiveLnbByTarget(defaultSectionForMode(currentViewMode));
       });
 
       init();
