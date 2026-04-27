@@ -912,6 +912,12 @@
         gap: 16px;
       }
 
+      .section-actions {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+      }
+
       .section-title {
         margin: 0;
         font-size: 21px;
@@ -928,6 +934,22 @@
         border-radius: 999px;
         background: #fff;
         white-space: nowrap;
+      }
+
+      .help-btn {
+        border: 1px solid #cbd9ed;
+        border-radius: 999px;
+        background: #fff;
+        color: #204f9a;
+        font: inherit;
+        font-size: 12px;
+        font-weight: 700;
+        padding: 6px 11px;
+        cursor: pointer;
+      }
+
+      .help-btn:hover {
+        background: #f3f7ff;
       }
 
       .kpi-grid {
@@ -1126,6 +1148,149 @@
         font-size: 30px;
       }
 
+      .help-fab {
+        position: fixed;
+        right: 22px;
+        bottom: 22px;
+        width: 44px;
+        height: 44px;
+        border: 1px solid #bcd0ec;
+        border-radius: 999px;
+        background: linear-gradient(145deg, #ffffff 0%, #eef4ff 100%);
+        color: #1b4ea0;
+        font-size: 22px;
+        font-weight: 800;
+        line-height: 1;
+        cursor: pointer;
+        box-shadow: 0 8px 20px rgba(26, 78, 155, 0.18);
+        z-index: 45;
+      }
+
+      .help-fab:hover {
+        transform: translateY(-1px);
+      }
+
+      .onboarding-modal {
+        position: fixed;
+        inset: 0;
+        z-index: 60;
+        background: rgba(17, 33, 56, 0.42);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: 18px;
+      }
+
+      .onboarding-modal.open {
+        display: flex;
+      }
+
+      .onboarding-panel {
+        width: min(980px, 96vw);
+        max-height: min(84vh, 900px);
+        overflow: auto;
+        border: 1px solid var(--line);
+        border-radius: 16px;
+        background: #ffffff;
+        padding: 18px;
+      }
+
+      .onboarding-head {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        align-items: start;
+      }
+
+      .onboarding-title {
+        margin: 0;
+        font-size: 24px;
+        letter-spacing: -0.03em;
+      }
+
+      .onboarding-sub {
+        margin: 8px 0 0;
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      .onboarding-close {
+        border: 1px solid #c9d9ef;
+        border-radius: 10px;
+        background: #fff;
+        color: #2c4f79;
+        font: inherit;
+        font-size: 12px;
+        font-weight: 700;
+        padding: 7px 10px;
+        cursor: pointer;
+      }
+
+      .onboarding-steps {
+        margin: 16px 0 0;
+        padding: 0;
+        list-style: none;
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 10px;
+      }
+
+      .onboarding-step {
+        border: 1px solid var(--line-soft);
+        border-radius: 12px;
+        background: #f9fbff;
+        padding: 10px;
+      }
+
+      .step-label {
+        display: inline-flex;
+        align-items: center;
+        border-radius: 999px;
+        background: #e9f1ff;
+        color: #1e57ab;
+        padding: 4px 8px;
+        font-size: 11px;
+        font-weight: 700;
+      }
+
+      .step-text {
+        margin-top: 7px;
+        font-size: 12px;
+        color: #355373;
+        line-height: 1.5;
+      }
+
+      .onboarding-grid {
+        margin-top: 14px;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+      }
+
+      .metric-guide {
+        border: 1px solid var(--line-soft);
+        border-radius: 12px;
+        background: #ffffff;
+        padding: 11px;
+      }
+
+      .metric-guide h4 {
+        margin: 0;
+        font-size: 15px;
+      }
+
+      .metric-guide .desc,
+      .metric-guide .how,
+      .metric-guide .formula {
+        margin-top: 6px;
+        font-size: 12px;
+        line-height: 1.5;
+      }
+
+      .metric-guide .desc { color: #2e4a6d; }
+      .metric-guide .how { color: #4f6888; }
+      .metric-guide .formula { color: #5f7898; }
+
       @media (max-width: 1500px) {
         .kpi-grid {
           grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -1144,7 +1309,9 @@
         }
         .quant-grid,
         .qual-grid,
-        .narrative-grid {
+        .narrative-grid,
+        .onboarding-grid,
+        .onboarding-steps {
           grid-template-columns: 1fr;
         }
       }
@@ -1157,6 +1324,10 @@
         .kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
         .bars,
         .trend-bars { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+        .help-fab {
+          right: 14px;
+          bottom: 14px;
+        }
       }
     </style>
   </head>
@@ -1217,7 +1388,10 @@
                 <h3 class="section-title">핵심 수치 요약</h3>
                 <p class="section-desc">먼저 핵심 상태를 확인하고, 아래 추세/원본 데이터에서 원인을 검증하세요.</p>
               </div>
-              <button id="kpiToggleBtn" class="ghost-btn">지표 더보기</button>
+              <div class="section-actions">
+                <button id="onboardingOpenBtn" class="help-btn" aria-haspopup="dialog">? 지표 안내</button>
+                <button id="kpiToggleBtn" class="ghost-btn">지표 더보기</button>
+              </div>
             </section>
             <section class="kpi-grid" id="kpiGrid"></section>
 
@@ -1381,6 +1555,37 @@
       </main>
     </div>
 
+    <button id="helpFab" class="help-fab" aria-label="지표 안내 열기" aria-haspopup="dialog">?</button>
+
+    <div id="onboardingModal" class="onboarding-modal" role="dialog" aria-modal="true" aria-labelledby="onboardingTitle" hidden>
+      <section class="onboarding-panel">
+        <div class="onboarding-head">
+          <div>
+            <h3 id="onboardingTitle" class="onboarding-title">핵심 지표 온보딩</h3>
+            <p class="onboarding-sub">"이 지표가 뭘 의미하는지"와 "어떻게 해석해야 하는지"를 한 번에 볼 수 있습니다.</p>
+          </div>
+          <button id="onboardingCloseBtn" class="onboarding-close">닫기</button>
+        </div>
+
+        <ol class="onboarding-steps">
+          <li class="onboarding-step">
+            <span class="step-label">1단계</span>
+            <div class="step-text">핵심 수치에서 현재 상태를 빠르게 확인합니다.</div>
+          </li>
+          <li class="onboarding-step">
+            <span class="step-label">2단계</span>
+            <div class="step-text">구독 추세/요청 구성으로 왜 그런지 원인을 확인합니다.</div>
+          </li>
+          <li class="onboarding-step">
+            <span class="step-label">3단계</span>
+            <div class="step-text">인사이트·정성 탭에서 리스크와 우선 액션으로 연결합니다.</div>
+          </li>
+        </ol>
+
+        <section id="onboardingMetricList" class="onboarding-grid" aria-live="polite"></section>
+      </section>
+    </div>
+
     <script>
       const n = (v) => Number(v || 0).toLocaleString();
       const pct = (v) => `${(Number(v || 0) * 100).toFixed(1)}%`;
@@ -1417,6 +1622,11 @@
       const summaryMeta = document.getElementById("summaryMeta");
       const riskList = document.getElementById("riskList");
       const actionList = document.getElementById("actionList");
+      const onboardingOpenBtn = document.getElementById("onboardingOpenBtn");
+      const onboardingModal = document.getElementById("onboardingModal");
+      const onboardingCloseBtn = document.getElementById("onboardingCloseBtn");
+      const onboardingMetricList = document.getElementById("onboardingMetricList");
+      const helpFab = document.getElementById("helpFab");
 
       let weeklyRowsCache = [];
       let typeRowsCache = [];
@@ -1425,6 +1635,7 @@
       let showAllKpis = false;
       let isStaticMode = false;
       let currentViewMode = "quant";
+      const ONBOARDING_STORAGE_KEY = "swap_ops_onboarding_seen_v1";
 
       function withBase(path) {
         const base = document.querySelector("base")?.getAttribute("href") || "";
@@ -1584,6 +1795,46 @@
           render: (v) => n(v)
         }
       };
+
+      const ONBOARDING_METRICS = [
+        "active_subscribers",
+        "retention_rate",
+        "churn_rate",
+        "new_subscribers",
+        "churned_subscribers",
+        "wow_active_delta",
+        "ontime_completion_rate",
+        "overdue_d1_count"
+      ];
+
+      function renderOnboardingMetricList() {
+        const items = ONBOARDING_METRICS
+          .map((key) => {
+            const meta = METRIC_META[key];
+            if (!meta) return null;
+            return `
+              <article class="metric-guide">
+                <h4>${meta.label}</h4>
+                <div class="desc">의미: ${meta.description}</div>
+                <div class="how">해석: ${meta.guide}</div>
+                <div class="formula">도출: ${meta.formula}</div>
+              </article>
+            `;
+          })
+          .filter(Boolean);
+        onboardingMetricList.innerHTML = items.join("");
+      }
+
+      function openOnboarding() {
+        onboardingModal.hidden = false;
+        onboardingModal.classList.add("open");
+      }
+
+      function closeOnboarding() {
+        onboardingModal.classList.remove("open");
+        onboardingModal.hidden = true;
+        localStorage.setItem(ONBOARDING_STORAGE_KEY, "1");
+      }
 
       function kpi(metricKey, label, value, sub, cls = "") {
         return `
@@ -2199,6 +2450,7 @@
         history.replaceState({ view: "main" }, "", mainUrl());
         applyViewMode("quant");
         setActiveLnbByTarget("sectionKpi");
+        renderOnboardingMetricList();
 
         const weeklyData = await getJsonWithFallback(`/api/ops/weekly?start=1900-01-01&end=2999-12-31`, "static/weekly.json");
         const rows = weeklyData.rows || [];
@@ -2220,6 +2472,11 @@
         const metricKey = initialMetricFromHash;
         if (metricKey && METRIC_META[metricKey]) {
           openMetricDetail(metricKey, { pushHistory: true });
+        }
+
+        const seen = localStorage.getItem(ONBOARDING_STORAGE_KEY);
+        if (!seen) {
+          openOnboarding();
         }
       }
 
@@ -2257,6 +2514,19 @@
         } else {
           showMainView();
           history.replaceState({ view: "main" }, "", mainUrl());
+        }
+      });
+      onboardingOpenBtn.addEventListener("click", openOnboarding);
+      helpFab.addEventListener("click", openOnboarding);
+      onboardingCloseBtn.addEventListener("click", closeOnboarding);
+      onboardingModal.addEventListener("click", (event) => {
+        if (event.target === onboardingModal) {
+          closeOnboarding();
+        }
+      });
+      window.addEventListener("keydown", (event) => {
+        if (event.key === "Escape" && !onboardingModal.hidden) {
+          closeOnboarding();
         }
       });
       window.addEventListener("popstate", (event) => {
