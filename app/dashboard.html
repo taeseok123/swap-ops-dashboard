@@ -848,8 +848,6 @@
             </article>
           </section>
 
-          <div id="goalBoard" class="goal-board" data-view-panel="quant"></div>
-
           <div class="section-head" data-view-panel="quant">
             <div id="sectionKpi" class="section-label">핵심 수치</div>
             <button id="kpiToggleBtn" class="ghost-btn">지표 더보기</button>
@@ -997,7 +995,6 @@
       const viewTabs = Array.from(document.querySelectorAll(".view-tab[data-view]"));
       const viewPanels = Array.from(document.querySelectorAll("[data-view-panel]"));
       const activeTrendMeta = document.getElementById("activeTrendMeta");
-      const goalBoard = document.getElementById("goalBoard");
       const slackSignalGrid = document.getElementById("slackSignalGrid");
       const summaryHeadline = document.getElementById("summaryHeadline");
       const summaryMeta = document.getElementById("summaryMeta");
@@ -1219,63 +1216,6 @@
           cls: pass ? "good" : "danger",
           statusText: pass ? "정상" : "주의"
         };
-      }
-
-      function renderGoalBoard(latest) {
-        if (!latest) {
-          goalBoard.innerHTML = "";
-          return;
-        }
-        const guide = {
-          retention_rate: {
-            scope: "선택 기간 주간 평균 · 목표 93% 이상",
-            meaning: "의미: 활성 구독자가 유지된 비율",
-            formula: "산식: retained_subscribers / active_start_subscribers"
-          },
-          churn_rate: {
-            scope: "선택 기간 주간 평균 · 목표 8% 이하",
-            meaning: "의미: 활성 구독자 중 이탈한 비율",
-            formula: "산식: churned_subscribers / active_start_subscribers"
-          },
-          ontime_completion_rate: {
-            scope: "선택 기간 주간 평균 · 목표 90% 이상",
-            meaning: "의미: 예정일 안에 처리 완료된 비율",
-            formula: "산식: ontime_cnt / due_cnt"
-          },
-          overdue_d1_count: {
-            scope: "기간 종료 주차 기준 · 목표 40건 이하",
-            meaning: "의미: 예정일 D-1 시점 미완료 건수",
-            formula: "산식: 종료 주차 overdue_d1_count"
-          },
-          wow_active_delta: {
-            scope: "선택 기간 누적값",
-            meaning: "의미: 활성 구독자 순증감",
-            formula: "산식: Σ(신규 구독자 - 해지/철회)"
-          }
-        };
-        const keys = ["retention_rate", "churn_rate", "ontime_completion_rate", "overdue_d1_count", "wow_active_delta"];
-        goalBoard.innerHTML = keys.map((key) => {
-          const meta = METRIC_META[key];
-          const raw = meta.value(latest);
-          const g = guide[key] || {};
-          const goal = evaluateGoal(key, latest);
-          let goalLine = "추적";
-          let cls = "";
-          if (goal) {
-            goalLine = goal.statusText;
-            cls = goal.cls;
-          }
-          return `
-            <div class="goal-item">
-              <div class="goal-label">${meta.label}</div>
-              <div class="goal-value ${cls}">${meta.render(raw)}</div>
-              <div class="goal-sub">${goalLine}</div>
-              <div class="goal-help">${g.scope || "선택 기간 기준"}</div>
-              <div class="goal-meaning">${g.meaning || ""}</div>
-              <div class="goal-formula">${g.formula || ""}</div>
-            </div>
-          `;
-        }).join("");
       }
 
       function renderDetailDrivers(metricKey, latest, typeRows, weeklyRows) {
@@ -1819,7 +1759,6 @@
 
         renderKpis(latest);
         renderNarrative(latest, weeklyRows, typeRowsCache);
-        renderGoalBoard(latest);
         renderWeeklyTable(weeklyRows);
         renderActiveTrend(weeklyRows);
         renderRequestMix(latest);
