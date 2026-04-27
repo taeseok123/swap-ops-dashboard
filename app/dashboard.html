@@ -779,6 +779,291 @@
         .view-tabs { display: flex; width: 100%; }
         .view-tab { flex: 1; }
       }
+
+      /* ===== Redesign: Insight Workspace ===== */
+      :root {
+        --bg-1: #f3f2ee;
+        --ink: #172231;
+        --ink-2: #30435d;
+        --muted: #5e6f84;
+        --line: #c8d2de;
+        --line-soft: #dbe2eb;
+        --brand: #1c5fd4;
+        --brand-deep: #123f8f;
+        --mint: #0c9b82;
+        --amber: #b1771b;
+        --rose: #bf2f56;
+      }
+
+      body {
+        background:
+          radial-gradient(1200px 600px at 100% 0%, #e8eef7 0%, transparent 60%),
+          linear-gradient(180deg, #f6f5f2 0%, #eff2f7 100%) !important;
+        color: var(--ink);
+      }
+
+      .app-shell {
+        grid-template-columns: 248px minmax(0, 1fr);
+        gap: 20px;
+        max-width: 1600px;
+        margin: 0 auto;
+      }
+
+      .sidebar {
+        margin: 18px 0 18px 18px;
+        border-radius: 18px;
+        border: 0;
+        background:
+          linear-gradient(180deg, #1d304b 0%, #132336 100%);
+        box-shadow: 0 14px 36px rgba(13, 24, 40, 0.24);
+      }
+
+      .brand,
+      .sync-box {
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        background: rgba(255, 255, 255, 0.04);
+      }
+
+      .brand h1,
+      .brand .sub,
+      .sync-box,
+      .side-foot {
+        color: #e5edf8;
+      }
+
+      .sync-pill {
+        background: rgba(174, 217, 255, 0.2);
+        color: #d8ebff;
+      }
+
+      .menu .item {
+        color: #c8d7ea;
+        border-color: transparent;
+      }
+
+      .menu .item.active {
+        color: #ffffff;
+        border-color: rgba(255, 255, 255, 0.25);
+        background: linear-gradient(130deg, rgba(129, 178, 255, 0.32) 0%, rgba(58, 124, 220, 0.28) 100%);
+      }
+
+      .menu .item:not(.active):hover {
+        color: #ffffff;
+        border-color: rgba(255, 255, 255, 0.18);
+        background: rgba(255, 255, 255, 0.07);
+      }
+
+      .content {
+        padding: 18px 24px 40px 0;
+      }
+
+      .topbar {
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        box-shadow: none;
+        background:
+          linear-gradient(160deg, #ffffff 0%, #f5f8fd 100%);
+      }
+
+      .title {
+        font-size: 34px;
+        letter-spacing: -0.05em;
+      }
+
+      .subtitle {
+        font-size: 13px;
+        color: #4f647f;
+      }
+
+      .filters input {
+        border-radius: 10px;
+        background: #ffffff;
+      }
+
+      .filters button {
+        border-radius: 10px;
+        box-shadow: none;
+        background: linear-gradient(140deg, #1f6de5 0%, #13479d 100%);
+      }
+
+      .view-tabs {
+        margin-top: 14px;
+        padding: 4px;
+        border-radius: 999px;
+        border: 1px solid var(--line);
+        background: #ffffff;
+      }
+
+      .view-tab {
+        border-radius: 999px;
+        padding: 9px 14px;
+        color: #4a6484;
+      }
+
+      .view-tab.active {
+        background: linear-gradient(130deg, #e8f0ff 0%, #dce8ff 100%);
+        border-color: #c2d6ff;
+        color: #1e4d9f;
+      }
+
+      .section-label {
+        margin-top: 22px;
+        padding-top: 8px;
+        border-top: 2px solid var(--line-soft);
+        font-size: 12px;
+        letter-spacing: 0.03em;
+        text-transform: uppercase;
+      }
+
+      .narrative-grid {
+        grid-template-columns: 1.3fr 1fr 1fr;
+      }
+
+      .story-card,
+      .card,
+      .kpi,
+      .table-wrap,
+      .dcard,
+      .detail-view {
+        border-radius: 14px;
+        border: 1px solid var(--line);
+        box-shadow: none;
+        background: #ffffff;
+      }
+
+      .story-card,
+      .card,
+      .kpi {
+        border-top: 3px solid #d7e3f4;
+      }
+
+      .story-card.primary {
+        border-top-color: #5f94f2;
+        background: linear-gradient(170deg, #ffffff 0%, #f1f6ff 100%);
+      }
+
+      .story-title {
+        color: #3c5b80;
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+      }
+
+      .story-headline {
+        font-size: 30px;
+        line-height: 1.25;
+      }
+
+      .story-sub {
+        color: #5b7393;
+      }
+
+      .goal-board {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      .kpi-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      .kpi {
+        padding: 14px;
+      }
+
+      .kpi .label {
+        color: #4d6788;
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+      }
+
+      .kpi .value {
+        font-size: 36px;
+        letter-spacing: -0.05em;
+      }
+
+      .kpi .sub {
+        color: #597190;
+      }
+
+      .section-head {
+        margin-top: 16px;
+      }
+
+      .ghost-btn {
+        border-radius: 999px;
+        background: #ffffff;
+      }
+
+      .grid3 {
+        grid-template-columns: 1.1fr 0.9fr;
+      }
+
+      .card h3 {
+        font-size: 16px;
+      }
+
+      .bars .bar-track,
+      .trend-bars .ttrack {
+        background: #edf2f8;
+      }
+
+      .table-wrap {
+        overflow: hidden;
+      }
+
+      table {
+        background: #ffffff;
+      }
+
+      th {
+        background: #f1f5fb;
+        color: #486282;
+        border-bottom: 1px solid #dce5f0;
+      }
+
+      td {
+        color: #223a59;
+      }
+
+      tr:nth-child(even) td {
+        background: #fbfdff;
+      }
+
+      .detail-view {
+        background: #ffffff;
+      }
+
+      .detail-title {
+        font-size: 30px;
+      }
+
+      .dcard h4 {
+        font-size: 13px;
+        color: #476384;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+      }
+
+      @media (max-width: 1360px) {
+        .app-shell {
+          max-width: none;
+          margin: 0;
+        }
+        .kpi-grid {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+      }
+
+      @media (max-width: 1180px) {
+        .content {
+          padding: 16px;
+        }
+        .narrative-grid,
+        .grid3 {
+          grid-template-columns: 1fr;
+        }
+      }
     </style>
   </head>
   <body>
