@@ -212,6 +212,57 @@
         font-weight: 700;
       }
 
+      .narrative-grid {
+        margin-top: 10px;
+        display: grid;
+        grid-template-columns: 1.25fr 1fr 1fr;
+        gap: 12px;
+      }
+
+      .story-card {
+        border: 1px solid var(--line);
+        border-radius: 16px;
+        background: #ffffff;
+        padding: 14px;
+        box-shadow: 0 2px 8px rgba(20, 38, 64, 0.04);
+      }
+
+      .story-card.primary {
+        background: linear-gradient(160deg, #ffffff 0%, #f4f8ff 100%);
+      }
+
+      .story-title {
+        margin: 0 0 8px;
+        font-size: 13px;
+        color: #597193;
+        font-weight: 700;
+      }
+
+      .story-headline {
+        margin: 0;
+        font-size: 24px;
+        line-height: 1.3;
+        letter-spacing: -0.03em;
+        color: #1f3452;
+      }
+
+      .story-sub {
+        margin-top: 8px;
+        font-size: 12px;
+        color: #5f7898;
+        line-height: 1.55;
+      }
+
+      .story-list {
+        margin: 0;
+        padding-left: 18px;
+        color: #284263;
+        font-size: 13px;
+        line-height: 1.62;
+      }
+
+      .story-list li + li { margin-top: 5px; }
+
       .section-head {
         margin-top: 18px;
         display: flex;
@@ -669,6 +720,7 @@
         }
         .brand h1 { font-size: 14px; }
         .grid3 { grid-template-columns: 1fr; }
+        .narrative-grid { grid-template-columns: 1fr; }
         .detail-grid { grid-template-columns: 1fr; }
       }
 
@@ -709,10 +761,10 @@
         </section>
 
         <nav class="menu">
-          <button class="item active" data-target="sectionOverview">대시보드 개요</button>
-          <button class="item" data-target="sectionSubscription">구독 지표</button>
-          <button class="item" data-target="sectionRequests">고객요청</button>
-          <button class="item" data-target="sectionQuality">운영 품질</button>
+          <button class="item active" data-target="sectionOverview">기간 요약</button>
+          <button class="item" data-target="sectionQuality">원인/흐름</button>
+          <button class="item" data-target="sectionSubscription">원본 지표</button>
+          <button class="item" data-target="sectionRequests">요청유형 상세</button>
           <button class="item" data-target="sectionValidation">검증 리포트</button>
         </nav>
 
@@ -724,7 +776,7 @@
           <section class="topbar">
             <div>
               <h2 class="title">SWAP 운영 통합 대시보드</h2>
-              <div class="subtitle">구독/고객요청/SLA 지표를 한 화면에서 빠르게 읽고 바로 액션까지 연결합니다.</div>
+              <div class="subtitle">누구나 같은 결론에 도달하도록, 이번 기간 상태·원인·실행 액션 순서로 보여줍니다.</div>
             </div>
             <div class="filters">
               <div>
@@ -739,15 +791,32 @@
             </div>
           </section>
 
+          <div id="sectionOverview" class="section-label">1) 이번 기간 요약</div>
+          <section class="narrative-grid">
+            <article class="story-card primary">
+              <h3 class="story-title">한줄 요약</h3>
+              <p id="summaryHeadline" class="story-headline">데이터를 불러오는 중입니다.</p>
+              <div id="summaryMeta" class="story-sub"></div>
+            </article>
+            <article class="story-card">
+              <h3 class="story-title">핵심 리스크</h3>
+              <ol id="riskList" class="story-list"></ol>
+            </article>
+            <article class="story-card">
+              <h3 class="story-title">이번 기간 우선 액션</h3>
+              <ol id="actionList" class="story-list"></ol>
+            </article>
+          </section>
+
           <div id="goalBoard" class="goal-board"></div>
 
           <div class="section-head">
-            <div id="sectionOverview" class="section-label">핵심 KPI</div>
+            <div class="section-label">핵심 수치</div>
             <button id="kpiToggleBtn" class="ghost-btn">지표 더보기</button>
           </div>
           <section class="kpi-grid" id="kpiGrid"></section>
 
-          <div id="sectionQuality" class="section-label">운영 흐름</div>
+          <div id="sectionQuality" class="section-label">2) 원인/흐름 분석</div>
           <section class="grid3">
             <article class="card">
               <h3>주간 활성 구독자 추이 (최근 10주, 단위: 명)</h3>
@@ -773,7 +842,7 @@
             </article>
           </section>
 
-          <div id="sectionSubscription" class="section-label">주간 통합 데이터</div>
+          <div id="sectionSubscription" class="section-label">3) 원본 데이터 확인</div>
           <section class="table-wrap">
             <table>
               <thead>
@@ -888,6 +957,10 @@
       const activeTrendMeta = document.getElementById("activeTrendMeta");
       const goalBoard = document.getElementById("goalBoard");
       const slackSignalGrid = document.getElementById("slackSignalGrid");
+      const summaryHeadline = document.getElementById("summaryHeadline");
+      const summaryMeta = document.getElementById("summaryMeta");
+      const riskList = document.getElementById("riskList");
+      const actionList = document.getElementById("actionList");
 
       let weeklyRowsCache = [];
       let typeRowsCache = [];
@@ -1344,6 +1417,61 @@
         insightList.innerHTML = items.map((x) => `<li>${x}</li>`).join("");
       }
 
+      function renderNarrative(latest, weeklyRows, typeRows) {
+        if (!latest) {
+          summaryHeadline.textContent = "선택 기간에 해당하는 데이터가 없습니다.";
+          summaryMeta.textContent = "기간을 넓히거나 동기화 상태를 확인해 주세요.";
+          riskList.innerHTML = "<li>리스크를 계산할 데이터가 없습니다.</li>";
+          actionList.innerHTML = "<li>우선 동기화 상태와 날짜 필터를 점검해 주세요.</li>";
+          return;
+        }
+
+        const period = String(latest.week_start || "").trim();
+        const churn = Number(latest.churn_rate || 0);
+        const retention = Number(latest.retention_rate || 0);
+        const ontime = Number(latest.ontime_completion_rate || 0);
+        const overdue = Number(latest.overdue_d1_count || 0);
+        const backlog = Number(latest.backlog_open_count || 0);
+        const totalReq = Number(latest.total_request_count || 0);
+        const topType = typeRows && typeRows.length ? typeRows[0] : null;
+        const topTypeText = topType ? `${topType.request_type_name_ko} ${pct(topType.request_ratio)}` : "유형 데이터 없음";
+
+        let status = "안정";
+        if (ontime < 0.85 || churn > 0.11 || overdue >= 80) status = "주의";
+        if (ontime < 0.75 || churn > 0.14 || overdue >= 140) status = "경고";
+
+        summaryHeadline.textContent = `${period} 운영 상태는 '${status}' 입니다.`;
+        summaryMeta.textContent = `유지율 ${pct(retention)} · 이탈률 ${pct(churn)} · SLA ${pct(ontime)} · 총 요청 ${n(totalReq)}건 · 최다 유형 ${topTypeText}`;
+
+        const risks = [];
+        const actions = [];
+
+        if (ontime < 0.9) {
+          risks.push(`예정일내 처리 완료율이 ${pct(ontime)}로 목표(90%) 미만입니다.`);
+          actions.push(`D-1 미완료 ${n(overdue)}건을 유형별로 분리해 당일 우선 처리 큐를 운영하세요.`);
+        }
+        if (churn > 0.08) {
+          risks.push(`이탈률이 ${pct(churn)}로 목표(8%)를 초과했습니다.`);
+          actions.push("해지/철회 사유 Top3를 분류하고 모델/컬러변경·SLA 지연과 교차 점검하세요.");
+        }
+        if (backlog >= 180) {
+          risks.push(`백로그가 ${n(backlog)}건으로 높은 구간입니다.`);
+          actions.push("담당자별 WIP 상한을 정하고 미배정 건을 먼저 소진하세요.");
+        }
+        if (topType && Number(topType.request_ratio || 0) >= 0.35) {
+          risks.push(`요청유형이 '${topType.request_type_name_ko}'에 ${pct(topType.request_ratio)}로 쏠려 있습니다.`);
+          actions.push(`'${topType.request_type_name_ko}' 전용 처리 가이드와 슬롯을 임시 확장하세요.`);
+        }
+
+        if (!risks.length) {
+          risks.push("핵심 지표가 목표 범위 내로 유지되고 있습니다.");
+          actions.push("현재 운영 정책을 유지하되, 추세 급변 여부만 매일 점검하세요.");
+        }
+
+        riskList.innerHTML = risks.map((x) => `<li>${x}</li>`).join("");
+        actionList.innerHTML = actions.map((x) => `<li>${x}</li>`).join("");
+      }
+
       function signalState(level) {
         if (level >= 2) return { cls: "danger", label: "경고" };
         if (level === 1) return { cls: "warn", label: "주의" };
@@ -1627,6 +1755,7 @@
         latestRowCache = latest;
 
         renderKpis(latest);
+        renderNarrative(latest, weeklyRows, typeRowsCache);
         renderGoalBoard(latest);
         renderWeeklyTable(weeklyRows);
         renderActiveTrend(weeklyRows);
@@ -1640,6 +1769,7 @@
         typeRowsCache = typeRows;
 
         renderTypeTable(typeRows);
+        renderNarrative(latest, weeklyRows, typeRows);
         renderInsights(latest, weeklyRows, typeRows);
         renderSlackSignals(latest, weeklyRows, typeRows);
         await renderSyncStatus();
