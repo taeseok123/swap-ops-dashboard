@@ -959,6 +959,17 @@
         gap: 10px;
       }
 
+      .kpi-legend {
+        margin-top: 8px;
+        border: 1px solid var(--line-soft);
+        border-radius: 10px;
+        background: #f8fbff;
+        padding: 8px 10px;
+        font-size: 12px;
+        color: #3c587a;
+        line-height: 1.55;
+      }
+
       .kpi {
         border: 1px solid var(--line);
         border-radius: 12px;
@@ -1227,11 +1238,11 @@
       }
 
       .onboarding-steps {
-        margin: 16px 0 0;
+        margin: 14px 0 0;
         padding: 0;
         list-style: none;
         display: grid;
-        grid-template-columns: repeat(3, minmax(0, 1fr));
+        grid-template-columns: repeat(4, minmax(0, 1fr));
         gap: 10px;
       }
 
@@ -1280,16 +1291,16 @@
       }
 
       .metric-guide .desc,
-      .metric-guide .how,
-      .metric-guide .formula {
+      .metric-guide .dir,
+      .metric-guide .rule {
         margin-top: 6px;
         font-size: 12px;
         line-height: 1.5;
       }
 
       .metric-guide .desc { color: #2e4a6d; }
-      .metric-guide .how { color: #4f6888; }
-      .metric-guide .formula { color: #5f7898; }
+      .metric-guide .dir { color: #20589f; font-weight: 700; }
+      .metric-guide .rule { color: #5f7898; }
 
       @media (max-width: 1500px) {
         .kpi-grid {
@@ -1386,7 +1397,7 @@
             <section class="section-header">
               <div>
                 <h3 class="section-title">핵심 수치 요약</h3>
-                <p class="section-desc">먼저 핵심 상태를 확인하고, 아래 추세/원본 데이터에서 원인을 검증하세요.</p>
+                <p class="section-desc">한 줄 요약: 규모(활성) + 품질(유지율/이탈률) + 실행력(SLA/D-1)을 먼저 보세요.</p>
               </div>
               <div class="section-actions">
                 <button id="onboardingOpenBtn" class="help-btn" aria-haspopup="dialog">? 지표 안내</button>
@@ -1394,6 +1405,9 @@
               </div>
             </section>
             <section class="kpi-grid" id="kpiGrid"></section>
+            <section class="kpi-legend">
+              읽는 법: <strong>유지율·예정일내 완료율</strong>은 높을수록 좋고, <strong>이탈률·D-1 미완료</strong>는 낮을수록 좋습니다.
+            </section>
 
             <div id="sectionSubscription" class="section-anchor" data-view-panel="quant"></div>
             <section class="quant-grid">
@@ -1561,24 +1575,28 @@
       <section class="onboarding-panel">
         <div class="onboarding-head">
           <div>
-            <h3 id="onboardingTitle" class="onboarding-title">핵심 지표 온보딩</h3>
-            <p class="onboarding-sub">"이 지표가 뭘 의미하는지"와 "어떻게 해석해야 하는지"를 한 번에 볼 수 있습니다.</p>
+            <h3 id="onboardingTitle" class="onboarding-title">지표 한눈에 보기</h3>
+            <p class="onboarding-sub">각 지표의 의미와 좋은 방향(↑/↓)만 짧게 정리했습니다.</p>
           </div>
           <button id="onboardingCloseBtn" class="onboarding-close">닫기</button>
         </div>
 
         <ol class="onboarding-steps">
           <li class="onboarding-step">
-            <span class="step-label">1단계</span>
-            <div class="step-text">핵심 수치에서 현재 상태를 빠르게 확인합니다.</div>
+            <span class="step-label">규모</span>
+            <div class="step-text">활성/신규가 얼마나 되는지 확인</div>
           </li>
           <li class="onboarding-step">
-            <span class="step-label">2단계</span>
-            <div class="step-text">구독 추세/요청 구성으로 왜 그런지 원인을 확인합니다.</div>
+            <span class="step-label">품질</span>
+            <div class="step-text">유지율·이탈률로 건강도 확인</div>
           </li>
           <li class="onboarding-step">
-            <span class="step-label">3단계</span>
-            <div class="step-text">인사이트·정성 탭에서 리스크와 우선 액션으로 연결합니다.</div>
+            <span class="step-label">실행</span>
+            <div class="step-text">SLA·D-1로 처리 안정성 확인</div>
+          </li>
+          <li class="onboarding-step">
+            <span class="step-label">액션</span>
+            <div class="step-text">숫자 이상 시 인사이트 탭에서 원인 확인</div>
           </li>
         </ol>
 
@@ -1807,17 +1825,61 @@
         "overdue_d1_count"
       ];
 
+      const METRIC_GIST = {
+        active_subscribers: {
+          desc: "이번 주 종료 시점의 활성 구독자 수",
+          dir: "좋은 방향: 안정적 증가 (↑)",
+          rule: "해석 팁: 이탈률과 함께 보세요."
+        },
+        retention_rate: {
+          desc: "주초 활성 고객이 주말까지 유지된 비율",
+          dir: "좋은 방향: 높을수록 좋음 (↑)",
+          rule: "기준: 93% 이상이면 안정"
+        },
+        churn_rate: {
+          desc: "주초 활성 고객 중 이탈한 비율",
+          dir: "좋은 방향: 낮을수록 좋음 (↓)",
+          rule: "기준: 8% 이하 권장"
+        },
+        new_subscribers: {
+          desc: "해당 주 새로 유입된 구독자 수",
+          dir: "좋은 방향: 증가 (↑)",
+          rule: "해석 팁: 유지율 하락이 동반되는지 확인"
+        },
+        churned_subscribers: {
+          desc: "해당 주 해지/철회된 구독자 수",
+          dir: "좋은 방향: 감소 (↓)",
+          rule: "해석 팁: 해지 사유 Top3와 함께 확인"
+        },
+        wow_active_delta: {
+          desc: "활성 구독자 순증감 (신규-이탈)",
+          dir: "좋은 방향: 플러스 유지 (↑)",
+          rule: "해석 팁: 한 주 급등락은 원인 분해 필요"
+        },
+        ontime_completion_rate: {
+          desc: "예정일 도래 요청 중 기한 내 완료 비율",
+          dir: "좋은 방향: 높을수록 좋음 (↑)",
+          rule: "기준: 90% 이상 권장"
+        },
+        overdue_d1_count: {
+          desc: "예정일 하루 전까지 미완료인 요청 수",
+          dir: "좋은 방향: 낮을수록 좋음 (↓)",
+          rule: "기준: 40건 이하 권장"
+        }
+      };
+
       function renderOnboardingMetricList() {
         const items = ONBOARDING_METRICS
           .map((key) => {
             const meta = METRIC_META[key];
+            const gist = METRIC_GIST[key];
             if (!meta) return null;
             return `
               <article class="metric-guide">
                 <h4>${meta.label}</h4>
-                <div class="desc">의미: ${meta.description}</div>
-                <div class="how">해석: ${meta.guide}</div>
-                <div class="formula">도출: ${meta.formula}</div>
+                <div class="desc">의미: ${gist?.desc || meta.description}</div>
+                <div class="dir">${gist?.dir || "좋은 방향: 지표 성격에 따라 다름"}</div>
+                <div class="rule">${gist?.rule || meta.guide}</div>
               </article>
             `;
           })
@@ -1957,19 +2019,19 @@
 
         const wow = Number(latest.wow_active_delta || 0);
         const core = [
-          kpi("active_subscribers", "주간 활성 구독자", n(latest.active_subscribers), "전체 활성 구독자 수"),
-          kpi("new_subscribers", "주간 신규 구독자", n(latest.new_subscribers), "해당 주 신규 유입"),
-          kpi("churned_subscribers", "해지/철회", n(latest.churned_subscribers), "해당 주 이탈 건수", Number(latest.churned_subscribers) > 180 ? "danger" : ""),
-          kpi("retention_rate", "구독 유지율", pct(latest.retention_rate), "retained / active", Number(latest.retention_rate) >= 0.93 ? "good" : "warn"),
-          kpi("churn_rate", "이탈률", pct(latest.churn_rate), "churned / active", Number(latest.churn_rate) >= 0.12 ? "danger" : ""),
-          kpi("ontime_completion_rate", "예정일내 완료율", pct(latest.ontime_completion_rate), "SLA KPI", Number(latest.ontime_completion_rate) >= 0.9 ? "good" : "warn")
+          kpi("active_subscribers", "주간 활성 구독자", n(latest.active_subscribers), "운영 규모"),
+          kpi("new_subscribers", "주간 신규 구독자", n(latest.new_subscribers), "유입 (↑)"),
+          kpi("churned_subscribers", "해지/철회", n(latest.churned_subscribers), "이탈 건수 (↓)", Number(latest.churned_subscribers) > 180 ? "danger" : ""),
+          kpi("retention_rate", "구독 유지율", pct(latest.retention_rate), "높을수록 좋음 (↑)", Number(latest.retention_rate) >= 0.93 ? "good" : "warn"),
+          kpi("churn_rate", "이탈률", pct(latest.churn_rate), "낮을수록 좋음 (↓)", Number(latest.churn_rate) >= 0.12 ? "danger" : ""),
+          kpi("ontime_completion_rate", "예정일내 완료율", pct(latest.ontime_completion_rate), "기한 준수율 (↑)", Number(latest.ontime_completion_rate) >= 0.9 ? "good" : "warn")
         ];
         const extras = [
-          kpi("wow_active_delta", "주별 증감", `${wow >= 0 ? "+" : ""}${n(wow)}`, "활성 구독자 WoW", wowClass(wow)),
-          kpi("request_return_count", "반납형 요청", n(latest.request_return_count), "주간 접수 수"),
-          kpi("request_takeover_count", "인수형 요청", n(latest.request_takeover_count), "주간 접수 수"),
-          kpi("request_purchase_count", "구매 요청", n(latest.request_purchase_count), "주간 접수 수"),
-          kpi("overdue_d1_count", "D-1 미완료", n(latest.overdue_d1_count), "선행 위험 지표", Number(latest.overdue_d1_count) >= 40 ? "danger" : ""),
+          kpi("wow_active_delta", "주별 증감", `${wow >= 0 ? "+" : ""}${n(wow)}`, "순증감 (신규-이탈)", wowClass(wow)),
+          kpi("request_return_count", "반납형 요청", n(latest.request_return_count), "주간 접수"),
+          kpi("request_takeover_count", "인수형 요청", n(latest.request_takeover_count), "주간 접수"),
+          kpi("request_purchase_count", "구매 요청", n(latest.request_purchase_count), "주간 접수"),
+          kpi("overdue_d1_count", "D-1 미완료", n(latest.overdue_d1_count), "낮을수록 좋음 (↓)", Number(latest.overdue_d1_count) >= 40 ? "danger" : ""),
           kpi("active_subscribers", "최신 주차", latest.week_start, "기준 주차")
         ];
         kpiGrid.innerHTML = [...core, ...(showAllKpis ? extras : [])].join("");
